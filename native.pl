@@ -1,7 +1,8 @@
 :- initialization(start).        % start shell on load
 :- dynamic
   known/3,
-  multivalued/1.
+  multivalued/1,
+  top_goal/1.
 
 :- op(900, fy, not).
 
@@ -62,28 +63,47 @@ load_rules(File) :-
 
 lod_ruls :-
   repeat,
-    read_sentence(L),
-    process(L),
-  L == eof.
+  read_sentence(L),
+  process(L),
+  L == [''].
 
-process(eof) :- !.
+process(['']) :- !.
+
 process(L) :-
   trans(R, L, []),
+  writeln(R),
   assertz(R),
   !.
 
 process(L) :-
-  writeln('translate error: '),
+  writeln('Error de traducción en: '),
   writeln(L).
 
 
 % Split and tokenize a sentence
-read_sentence(L) :-
-  read_string(current_input, ".", "\n", _, String),
-  split_string(String, ' ', '. \n', L).
+read_sentence(LA) :-
+  read_string(current_input, ".", ". \n", _, String),
+  split_string(String, '\n ', '. \n', List_Strings),
+  atomic_list_concat(List_Strings,' ', Atom),
+  atomic_list_concat(LA,' ', Atom),
+  print(LA).
 
 
 % Trans - Translate a list of atoms into an internal rule
+
+trans(top_goal(X)) --> ['goal', X].
+trans(rule(N, if(IF), then(THEN))) --> id(N), if(IF), then(THEN).
+
+id(N) --> ['rule', N].
+
+if(IF) --> ['if'], iflist(IF).
+iflist([IF]) --> prase(IF).
+iflist([Hif | Tif]) --> prase(Hif), ['and'], iflist(Tif).
+
+then(THEN) --> ['then'], prase(THEN).
+
+prase(av(A, V)) --> [A, 'is', V].
+
 
 
 % -- Solve problem command
