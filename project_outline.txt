@@ -1,0 +1,15 @@
+El proyecto ha empezado como una copia del sistema de detección de aves del
+libro.
+
+Problema inicial: Libro muy viejo, utiliza sentencias de prolog que están
+deprecadas o que no existen no funcionan en SWI.
+Tarea: Leer todo el código, depurar los bugs y portearlo a SWI-Prolog.
+
+1º Iteración: Shell básica, implementado help, exit, y load. Carga archivos .nkb
+2º Iteración: Implementación de la función solve. Cambios en ask y askmenu para
+que funcionaran bien. Código más ordenado.
+3º Iteración (Actual): Utilizar CFG para cargar las reglas a partir de texto en
+inglés.
+Problema: En el código de referencia utilizan una función read_sentence que no
+existe en SWI-Prolog.
+Tarea: Definir algo que permita parsear un texto hasta el .
