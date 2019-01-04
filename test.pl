@@ -47,6 +47,7 @@ iflist([Hif | Tif]) --> prase(Hif), ['and'], iflist(Tif).
 then(THEN) --> prase(THEN).
 
 prase(av(A, V)) --> [A, 'is', V].
+prase(av(A, V)) --> [A, V].
 
 
 % Asking

@@ -1,10 +1,12 @@
-:- initialization(start).        % start shell on load
+:- initialization(start).        % Start shell on load
 :- dynamic
   known/3,
   multivalued/1,
   top_goal/1.
 
+% Define not operator
 :- op(900, fy, not).
+
 
 
 % Start program
@@ -13,80 +15,84 @@ start :-
   main_loop.
 
 
-% Prolog user shell
+% Prolog user shell - main loop
 main_loop :-
-  read(X),
-  do(X),
-  !,
-  main_loop.
+  repeat,
+    read(X),
+    do(X),
+    X = 'exit',
+  !.
 
 greetings :-
   writeln('Consola de comandos de Prolog para Sistemas Expertos'),
   help.
 
-do('help') :- help.
-do('load') :- load_kb.
-do('solve') :- solve.
-do('quit') :- !, fail.
-do('exit') :- !, fail.
+
+% -- COMMANDS --
+do('help') :- help, !.
+do('load') :- open_file, !.
+do('solve') :- solve, !.
+do('exit').
 do(X) :-
   write(X),
   writeln(' no es un comando válido!').
 
 
+
 % -- Help command
 help :-
-  writeln('Comandos: help. solve. load. quit. o exit.'), nl.
+  writeln('Comandos: help. solve. load. o exit.'), nl.
 
-% -- Load knowledge database command
-load_kb :-
+
+% -- Open file for loading kb
+open_file :-
   writeln('Escriba el nombre del archivo a cargar entre comillas (''*.kb''): '),
   /* read(File), */
-  load_kb('birds.ckb').
+  open_file('birds.ckb').
 
-load_kb(File) :-
+open_file(File) :-
   exists_file(File),
   load_rules(File),
-  write(File), writeln(' ha sido cargado!.'),
-  !.
+  write(File), writeln(' ha sido cargado!.').
 
-load_kb(File) :-
+open_file(File) :-
   write('El archivo '), write(File), writeln(' no existe.').
+
 
 load_rules(File) :-
   % clean_db
   see(File),
   lod_ruls,
-  writeln(' reglas cargadas.'),
-  seen,
-  !.
+  writeln('Todas las reglas se han leído correctamente.'),
+  seen.
 
 lod_ruls :-
   repeat,
-  read_sentence(L),
-  process(L),
-  L == [''].
+    read_sentence(L),
+    process(L),
+    L = [''],
+  !.
 
-process(['']) :- !.
+process(['']).
 
 process(L) :-
   trans(R, L, []),
   writeln(R),
-  assertz(R),
+  assertz(R), % Add rule to the dynamic databae
   !.
 
 process(L) :-
   writeln('Error de traducción en: '),
-  writeln(L).
+  writeln(L),
+  fail.
 
 
 % Split and tokenize a sentence
 read_sentence(LA) :-
   read_string(current_input, ".", ". \n", _, String),
-  split_string(String, '\n ', '. \n', List_Strings),
+  split_string(String, '\n, ', '. \n', List_Strings),
   atomic_list_concat(List_Strings,' ', Atom),
-  atomic_list_concat(LA,' ', Atom),
-  print(LA).
+  atomic_list_concat(LA,' ', Atom).
 
 
 % Trans - Translate a list of atoms into an internal rule
@@ -98,53 +104,60 @@ id(N) --> ['rule', N].
 
 if(IF) --> ['if'], iflist(IF).
 iflist([IF]) --> prase(IF).
-iflist([Hif | Tif]) --> prase(Hif), ['and'], iflist(Tif).
+iflist([Hif | Tif]) --> prase(Hif), (['and'] ; ['']), iflist(Tif).
 
 then(THEN) --> ['then'], prase(THEN).
 
-prase(av(A, V)) --> [A, 'is', V].
-
+prase(av(A, V)) --> [A], (['is'] ; ['are']), [V].
+prase(av(A, V)) --> [A, V].
 
 
 % -- Solve problem command
 solve :-
   retractall(known(_,_,_)), nl,
   current_predicate(top_goal/1),
-  top_goal(X),
-  write('La respuesta es '), writeln(X),
+  top_goal(Goal),
+  rule(_, if(List), then(av(Goal, Ans))),
+  askfrom(List),
+  write('La respuesta es '), writeln(Ans),
   help.
 
 solve :-
   not current_predicate(top_goal/1),
   writeln('Primero, cargue una base de datos de conocimiento con load.').
-
 solve :-
   writeln('No se ha encontrado una respuesta válida'), nl.
 
 
+askfrom([]) :- !.
+askfrom([H | T]) :-
+  ask(H),
+  !,
+  askfrom(T).
+
+
 % Asking
-ask(A, V) :-
-  known(yes, A, V),
+ask(av(A, V)) :-
+  known(si, A, V),
   !.
 
-ask(A, V) :-
+ask(av(A, V)) :-
   known(_, A, V),
   !,
   fail.
 
-ask(A, _) :-
+ask(av(A, _)) :-
   not multivalued(A),
-  known(yes, A, _),
+  known(si, A, _),
   !,
   fail.
 
-ask(A, V) :-
+ask(av(A, V)) :-
   write(A : V),
   writeln('? Escribe si. o no. :'),
   read(Ans),
   asserta(known(Ans, A, V)),
   Ans == 'si'.
-
 
 menuask(A, V, _) :-
   known(yes, A, V),

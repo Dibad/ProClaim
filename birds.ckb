@@ -1,16 +1,19 @@
+goal bird.
+
 rule 1
-  if    nostrils is external_tubular and
-        live is at_sea and
+  if    nostrils are external_tubular,
+        live at_sea,
         bill is hooked
   then  order is tubenose.
 
 rule 2
-  if    feet is webbed and
+  if    feet are webbed and
+        live at_mountain and
         bill is flat
   then  order is waterfowl.
 
 rule 3
-  if    eats is meat and
+  if    eats meat and
         feet is curved_talons and
         bill is sharp_hooked
   then  order is falconiforms.

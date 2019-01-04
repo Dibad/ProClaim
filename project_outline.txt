@@ -13,3 +13,5 @@ inglés.
 Problema: En el código de referencia utilizan una función read_sentence que no
 existe en SWI-Prolog.
 Tarea: Definir algo que permita parsear un texto hasta el .
+4º: Definir el DFG para que pueda cargar las reglas correctamente. Indicar la
+sintaxis correcta y demás.
