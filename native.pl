@@ -40,17 +40,51 @@ help :-
 % -- Load knowledge database command
 load_kb :-
   writeln('Escriba el nombre del archivo a cargar entre comillas (''*.kb''): '),
-  read(File),
-  load_kb(File).
+  /* read(File), */
+  load_kb('birds.ckb').
 
 load_kb(File) :-
   exists_file(File),
-  consult(File),
+  load_rules(File),
   write(File), writeln(' ha sido cargado!.'),
   !.
 
 load_kb(File) :-
   write('El archivo '), write(File), writeln(' no existe.').
+
+load_rules(File) :-
+  % clean_db
+  see(File),
+  lod_ruls,
+  writeln(' reglas cargadas.'),
+  seen,
+  !.
+
+lod_ruls :-
+  repeat,
+    read_sentence(L),
+    process(L),
+  L == eof.
+
+process(eof) :- !.
+process(L) :-
+  trans(R, L, []),
+  assertz(R),
+  !.
+
+process(L) :-
+  writeln('translate error: '),
+  writeln(L).
+
+
+% Split and tokenize a sentence
+read_sentence(L) :-
+  read_string(current_input, ".", "\n", _, String),
+  split_string(String, ' ', '. \n', L).
+
+
+% Trans - Translate a list of atoms into an internal rule
+
 
 % -- Solve problem command
 solve :-
