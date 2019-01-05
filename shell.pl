@@ -1,51 +1,63 @@
-% Prolog shell
-:- initialization(start).        % Start shell on load
+%  +----------------------------------+
+%  |                                  |
+%  |             ClamPro              |
+%  |                                  |
+%  +----------------------------------+
+% Prolog Shell for Expert Sytems based on Clam, from the book "Building Expert
+% Systems with Prolog" with extended features.
 
-% Define dynamic functions
+
+% ============  Prolog Defs  ==============
+:- initialization(start). % Initialize shell on start
+
 :- dynamic
   top_goal/1, fact/2, askable/3, rule/3.
-% Define not operator
-:- op(900, fy, not).
+
+:- op(900, fy, not). % Define not operator instead of using \+
 
 
-% Prolog user shell - main loop
+
+% ============  Main Loop  ================
 start :-
-  writeln('Prolog Shell para Sistemas Expertos'),
+  writeln('\t-- ClamPro --'), writeln('Prolog Shell for Expert Systems.'),
   repeat,
     nl,
-    help,
-    /* read(Command), */
-    do(load),
-    do(solve),
+    writeln('Commands: solve. load. or exit.'),
+    read(Command),
+    do(Command),
     Command = 'exit',
   !.
 
-help :-
-  writeln('Comandos: solve. load. o exit.').
 
 
-% -- COMMANDS --
-do('load') :- open_file, !.
+% ============  Commands  =================
 do('solve') :- solve, !.
+do('load') :- load_file, !.
+do('consult') :- consult, !.
 do('exit').
 do(X) :-
   write(X),
-  writeln(' no es un comando válido!').
+  writeln(' is not a valid command!').
 
 
-% -- Open file for loading kb
-open_file :-
-  writeln('Escriba el nombre del archivo a cargar entre comillas (''*.kb''): '),
-  /* read(File), */
-  open_file('car.ckb').
 
-open_file(File) :-
+% ============  Load File  ================
+
+% A. Read file from user input
+load_file :-
+  writeln('Type the name of the file between single quotes (''*.kb''): '),
+  read(File),
+  load_file('car.ckb').
+
+% B. Check if file exists and load rules
+load_file(File) :-
   exists_file(File),
   load_rules(File),
-  write(File), writeln(' ha sido cargado!.').
+  write(File), writeln(' rules have been loaded!.').
 
-open_file(File) :-
-  write('El archivo '), write(File), writeln(' no existe.').
+% C. Fail if couldn't load file
+load_file(File) :-
+  write('Error! Couldn''t load '), writeln(File).
 
 
 % -- Solve
@@ -57,6 +69,49 @@ solve :-
   !.
 
 solve.
+
+
+
+% ============  Load Rules  ===============
+
+% A. Clean previous rules, set file as stream input and start iterating.
+load_rules(File) :-
+  % clean_db,
+  see(File),
+  load_rules,
+  writeln('Done loading rules!.'),
+  seen.
+
+% B. Iterate through all rules. Doesn't stop if a rule can't be translated
+load_rules :-
+  repeat,
+    read_sentence(List),
+    process(List),
+    List = [''],
+  !.
+
+
+% Transform rule from DCG to internal format.
+process(['']).
+process(List) :-
+  translate(Rule, List, []), % --> Call to DCG
+  assertz(Rule), % Add the Rule to the dynamic database
+  writeln(Rule),
+  !.
+
+process(List) :-
+  writeln('Translation error in:'),
+  writeln(List).
+
+
+% Split a sentence, using spaces as separator and skipping escape characters
+% NOTE: MUST be a list of ATOMS ['a', 'b', ...], not STRINGS ["a", "b", ...]
+read_sentence(ListAtoms) :-
+  read_string(current_input, ",.", "\n\r\t ", _, String),
+  split_string(String, "\n\t, ", "", ListStrings), % Remove special characters
+  atomic_list_concat(ListStrings,' ', Atom), % ["a", "b"] --> 'a b'
+  atomic_list_concat(ListAtoms,' ', Atom). % 'a b' --> ['a', 'b']
+
 
 
 goal(A) :-
@@ -212,43 +267,8 @@ absolute(X, X) :- X >= 0.
 absolute(X, Y) :- X < 0, Y is -X.
 
 
-% -- Load and Parse Expert System Rules
-load_rules(File) :-
-  % clean_db,
-  see(File),
-  lod_ruls,
-  writeln('Todas las reglas se han leído correctamente.'),
-  seen.
-  %!.
 
-lod_ruls :-
-  repeat,
-    read_sentence(List),
-    process(List),
-    List = [''],
-  !.
-
-process(['']).
-process(List) :-
-  translate(Rule, List, []),
-  assertz(Rule), % Add rule to dynamic database
-  writeln(Rule),
-  !.
-
-process(List) :-
-  writeln('Error de traducción en: '),
-  writeln(List),
-  fail.
-
-% Split and tokenize a sentence
-read_sentence(Rule_List) :-
-  read_string(current_input, ",.", "\n\r\t ", _, String),
-  split_string(String, "\n\t, ", "", LStrings), % Remove special characters
-  atomic_list_concat(LStrings,' ', Atom),
-  atomic_list_concat(Rule_List,' ', Atom).
-
-
-% -- DFG for parsing text
+% -- DCG for parsing text
 
 % KB statements
 translate(top_goal(X)) --> ['goal', X].
