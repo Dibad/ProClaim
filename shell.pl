@@ -60,17 +60,6 @@ load_file(File) :-
   write('Error! Couldn''t load '), writeln(File).
 
 
-% -- Solve
-solve :-
-  current_predicate(top_goal/1),
-  top_goal(A),
-  goal(A),
-  print_goal(A),
-  !.
-
-solve.
-
-
 
 % ============  Load Rules  ===============
 
@@ -114,15 +103,30 @@ read_sentence(ListAtoms) :-
 
 
 
-goal(A) :-
-  findgoal(av(A, _), _).
+% ============  Solve  ====================
 
-print_goal(A) :-
+% Start the inference and pursue top_goal.
+solve :-
+  top_goal(A),
+  findgoal(av(A, _), _),
+  print_goals(A),
+  !.
+
+solve :-
   nl,
-  fact(av(A, V), CF),
-  CF >= 20,
-  write(A), write(': '), write(V), write(' - '), write(CF), nl,
-  fail. % Necessary to show all goals
+  writeln('Couldn''t find any goal :(').
+
+
+
+% ============  Print Goal  ===============
+
+% Print all the goals found after searching through the dynamic database
+print_goals(A) :-
+  nl,
+  writeln('Sucess! Found: '),
+  forall(fact(av(A, V), CF),
+    (write('\t'), write(A), write(': '), write(V), write(' cf '), writeln(CF))).
+
 
 findgoal(not Goal, CF) :-
   findgoal(Goal, CF),
