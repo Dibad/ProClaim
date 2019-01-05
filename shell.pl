@@ -1,8 +1,9 @@
 % Prolog shell
 :- initialization(start).        % Start shell on load
 
+% Define dynamic functions
 :- dynamic
-  top_goal/1, fact/2, askable/3.
+  top_goal/1, fact/2, askable/3, rule/3.
 
 % Define not operator
 :- op(900, fy, not).
@@ -53,29 +54,26 @@ solve :-
   current_predicate(top_goal/1),
   top_goal(A),
   goal(A),
-  print_goal(A).
+  print_goal(A),
+  !.
 
-solve :-
-  writeln('No se ha encontrado una respuesta válida').
+solve.
 
 
 goal(A) :-
-  findgoal(av(A, _), _),
-  print_goal(A).
-
+  findgoal(av(A, _), _).
 
 print_goal(A) :-
   nl,
   fact(av(A, V), CF),
   CF >= 20,
-  write(A), write(V), write(' - '), write(CF), nl.
-
+  write(A), write(': '), write(V), write(' - '), write(CF), nl,
+  fail. % Necessary to show all goals
 
 % From problem find questions
 findgoal(not Goal, CF) :-
   findgoal(Goal, CF).
   NCF is 100 - CF,
-  print(NCF),
   !.
 
 % Value already known
@@ -88,9 +86,6 @@ findgoal(av(A, V), CF) :-
 findgoal(av(A, V), CF) :-
   not fact(av(A, _), _),
   askable(A, Menu, Prompt),
-  print(A),
-  print(Menu),
-  print(Prompt),
   query_user(A, Menu, Prompt),
   !,
   findgoal(av(A, V), CF).
@@ -102,13 +97,15 @@ findgoal(Goal, CurCF) :-
 
 
 query_user(A, Menu, Prompt) :-
-  writeln(A),
-  writeln(Menu),
-  writeln(Prompt),
+  nl,
+  write('-> Question about: '), writeln(A),
+  write('Options: '), writeln(Menu),
+  atomic_list_concat(Prompt, ' ', PromptString),
+  writeln(PromptString),
   read(V),
+  writeln('CF?'),
   read(CF),
   asserta(fact(av(A, V), CF)).
-
 
 
 fg(Goal, CurCF) :-
@@ -122,7 +119,6 @@ fg(Goal, CurCF) :-
 
 fg(Goal, CF) :-
   fact(Goal, CF).
-
 
 
 prove(IfList, Tally) :-
@@ -154,11 +150,11 @@ int_round(X, I) :-
   X < 0,
   I is integer(X - 0.5).
 
-update(Goal, NewCF, Cf) :-
+update(Goal, NewCF, CF) :-
   fact(Goal, OldCF),
-  combine(NewCF, OldCF, Cf),
+  combine(NewCF, OldCF, CF),
   retract(fact(Goal, OldCF)),
-  asserta(fact(Goal, Cf)),
+  asserta(fact(Goal, CF)),
   !.
 
 update(Goal, CF, CF) :-

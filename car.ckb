@@ -33,21 +33,21 @@ output problem is out_of_gas start walking or hitching to a gas station.
 output problem is flooded wait 5 minutes and try again.
 
 ask	turn_over
-menu (yes no)
+menu yes no
 prompt 'Does the engine turn over?'.
 
 ask	lights_weak
-menu	(yes no)
+menu	yes no
 prompt 'Are the lights weak?'.
 
 ask	radio_weak
-menu	(yes no)
+menu	yes no
 prompt 'Is the radio weak?'.
 
 ask	smell_gas
-menu	(yes no)
+menu	yes no
 prompt 'Do you smell gas?'.
 
 ask	gas_gauge
-menu	(empty low full)
+menu	empty low full
 prompt 'What does the gas gauge say?'.

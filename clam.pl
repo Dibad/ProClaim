@@ -43,7 +43,7 @@ top_goals :-
 top_goals.
 
 % top starts the backward chaining by looking for rules that reference
-% the attribute in the RHS.  If it is known with certainty 100, then
+% the attribute in the RHS. If it is known with certainty 100, then
 % no other rules are tried, and other candidates are eliminated.  Otherwise
 % other rules which might yield different values for the attribute
 % are tried as well
@@ -58,6 +58,7 @@ print_goal(Attr) :-
 	nl,
 	fact(av(Attr,X),CF,_),
 	CF >= 20,
+  print(av(Attr, X)),
 	outp(av(Attr,X),CF),nl,
 	fail.
 print_goal(Attr) :-write('done with '),write(Attr),nl,nl.
@@ -498,10 +499,10 @@ iflist([Hif|Tif]) --> phraz(Hif),[','],iflist(Tif).
 then(THEN,CF) --> phraz(THEN),[cf],[CF].
 then(THEN,100) --> phraz(THEN).
 
-phraz(not av(Attr,yes)) --> [not,Attr].
-phraz(not av(Attr,yes)) --> [not,a,Attr].
-phraz(not av(Attr,yes)) --> [not,an,Attr].
-phraz(not av(Attr,Val)) --> [not,Attr,is,Val].
+phraz(av(Attr,no)) --> [not,Attr].
+phraz(av(Attr,no)) --> [not,a,Attr].
+phraz(av(Attr,no)) --> [not,an,Attr].
+phraz(av(Attr,Val)) --> [not,Attr,is,Val].
 phraz(not av(Attr,Val)) --> [not,Attr,are,Val].
 phraz(av(Attr,Val)) --> [Attr,is,Val].
 phraz(av(Attr,Val)) --> [Attr,are,Val].
