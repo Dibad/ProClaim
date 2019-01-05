@@ -1,13 +1,13 @@
-:- dynamic ghoul/1, fact/3, rule/1, rule/3, asked/1, askable/1, askable/4,
-	ruletrace/0, multivalued/1.
+% Clam - expert system shell with EMYCIN type certainty factors
 
+% This system is an imitation of the EMYCIN imitators.  It does backward
+% chaininging (goal directed) inference with uncertainty.  The uncertainty
+% is modelled using the MYCIN certainty factors.
+
+% The only data structure is an attribute:value pair.
+
+% NOTE - CF calculation in update only good for positive CF
 :- op(900, fy, not).
-
-:- initialization(main).        % Start shell on load
-
-:- use_module('prolog/tokenize.pl').
-
-
 
 main :-
 	do_over,
@@ -17,21 +17,22 @@ main :-
 
 super :-
 	repeat,
-	writeln('consult  restart  load  list  trace on/off  how  exit'),
-	read_sentence([Command | Arg]),
-	doit([Command | Arg]),
-	Command == exit.
+	write('consult  restart  load  list  trace on/off  how  exit'),nl,
+	write('> '),
+	read_line([X|Y]),
+	doit([X|Y]),
+	X == exit.
 
 doit([consult]) :- top_goals,!.
 doit([restart]) :- do_over,!.
 doit([load]) :- load_rules,!.
 doit([list]) :- list_facts,!.
 doit([trace,X]) :- set_trace(X),!.
-doit([how | Arg]) :- how(Arg),!.
+doit([how|Y]) :- how(Y),!.
 doit([exit]).
-doit([Command | Arg]) :-
+doit([X|Y]) :-
 	write('invalid command : '),
-	write([Command | Arg]),nl.
+	write([X|Y]),nl.
 
 % top_goals works through each of the goals in sequence
 
@@ -45,11 +46,11 @@ top_goals.
 % top starts the backward chaining by looking for rules that reference
 % the attribute in the RHS.  If it is known with certainty 100, then
 % no other rules are tried, and other candidates are eliminated.  Otherwise
-% other rules which might yield different values for the attribute
+% other rules which might yield different values for the attribute 
 % are tried as well
 
 top(Attr) :-
-	findgoal(av(Attr,_Val),_CF,[goal(Attr)]),!.
+	findgoal(av(Attr,Val),CF,[goal(Attr)]),!.
 top(_) :- true.
 
 % prints all hypotheses for a given attribute
@@ -87,12 +88,12 @@ printlist([H|T]) :-
 %     value doesn't match, but its single valued and known with
 %     certainty 100 definitely fail
 
-findgoal(X,_Y,_) :- bugdisp(['  ',X]),fail.
+findgoal(X,Y,_) :- bugdisp(['  ',X]),fail.
 
 findgoal(not Goal,NCF,Hist) :-
 	findgoal(Goal,CF,Hist),
 	NCF is - CF, !.
-findgoal(Goal,CF,_Hist) :-
+findgoal(Goal,CF,Hist) :-
 	fact(Goal,CF,_), !.
 %findgoal(av(Attr,Val),CF) :-
 %	bound(Val),
@@ -116,21 +117,20 @@ findgoal(Goal,CF,Hist) :-
 
 findgoal(Goal,CurCF,Hist) :-
 	fg(Goal,CurCF,Hist).
-
+	
 fg(Goal,CurCF,Hist) :-
 	rule(N, lhs(IfList), rhs(Goal,CF)),
 	bugdisp(['call rule',N]),
 	prove(N,IfList,Tally,Hist),
 	bugdisp(['exit rule',N]),
-  atom_number(CF, NumCF),
-	adjust(NumCF,Tally,NewCF),
+	adjust(CF,Tally,NewCF),
 	update(Goal,NewCF,CurCF,N),
 	CurCF == 100,!.
 fg(Goal,CF,_) :- fact(Goal,CF,_).
 
 % can_ask shows how to query the user for various types of goal patterns
 
-can_ask(av(Attr,_Val),Hist) :-
+can_ask(av(Attr,Val),Hist) :-
 	not asked(av(Attr,_)),
 	askable(Attr,Menu,Edit,Prompt),
 	query_user(Attr,Prompt,Menu,Edit,Hist),
@@ -140,8 +140,7 @@ can_ask(av(Attr,_Val),Hist) :-
 % derived.  It can be called successive times to get the whole proof.
 
 how([]) :-
-	writeln('Goal? '),
-	read_sentence(X),
+	write('Goal? '),read_line(X),nl,
 	pretty(Goal,X),
 	how(Goal).
 how(X) :-
@@ -156,7 +155,7 @@ how(not Goal) :-
 	write_line([PG,was,derived,from,'rules: '|Rules]),
 	nl,
 	list_rules(Rules),
-	fail.
+	fail.	
 how(Goal) :-
 	fact(Goal,CF,Rules),
 	CF > 20,
@@ -197,12 +196,12 @@ pretty(av(A,V),[A,is,V]).
 how_lhs(N) :-
 	rule(N, lhs(Iflist), _),
 	!, how_ifs(Iflist).
-
+	
 how_ifs([]).
 how_ifs([Goal|X]) :-
 	how(Goal),
 	how_ifs(X).
-
+	
 % get input from the user.  either a straight answer from the menu, or
 % an answer with cf N appended to it.
 
@@ -212,7 +211,7 @@ query_user(Attr,Prompt,[yes,no],_,Hist) :-
 	get_user(X,Hist),
 	get_vcf(X,Val,CF),
 	asserta( fact(av(Attr,Val),CF,[user]) ).
-query_user(Attr,Prompt,Menu,_Edit,Hist) :-
+query_user(Attr,Prompt,Menu,Edit,Hist) :-
 	write(Prompt),nl,
 	menu_read(VList,Menu,Hist),
 	assert_list(Attr,VList).
@@ -223,14 +222,14 @@ menu_read(X,Menu,Hist) :-
 
 get_user(X,Hist) :-
 	repeat,
-	writeln(': '),
-	read_sentence(X),
+	write(': '),
+	read_line(X),
 	process_ans(X,Hist).
 
 process_ans([why],Hist) :- nl,write_hist(Hist), !, fail.
-process_ans(_,_).
+process_ans(X,_).	
 
-rite_hist([]) :- nl.
+write_hist([]) :- nl.
 write_hist([goal(X)|T]) :-
 	write_line([goal,X]),
 	!, write_hist(T).
@@ -238,9 +237,9 @@ write_hist([N|T]) :-
 	list_rule(N),
 	!, write_hist(T).
 
-write_list(_,[]).
+write_list(N,[]).
 write_list(N,[H|T]) :-
-	tab(N),write(H),
+	tab(N),write(H),nl,
 	write_list(N,T).
 
 assert_list(_,[]).
@@ -280,7 +279,7 @@ prove(N,_,_) :-
 	bugdisp(['fail rule',N]),
 	fail.
 
-prov([],Tally,Tally,_Hist).
+prov([],Tally,Tally,Hist).
 prov([H|T],CurTal,Tally,Hist) :-
 	findgoal(H,CF,Hist),
 	minimum(CurTal,CF,Tal),
@@ -306,7 +305,7 @@ erase_other(Attr) :-
 	CF < 100,
 	retract( fact(av(Attr,Val),CF,_) ),
 	fail.
-erase_other(_Attr) :-true.
+erase_other(Attr) :-true.
 
 adjust(CF1,CF2,CF) :-
 	X is CF1 * CF2 / 100,
@@ -367,7 +366,7 @@ set_trace(on) :-
 set_trace(_).
 
 single_valued(A) :-multivalued(A),!,fail.
-single_valued(_) :-true.
+single_valued(A) :-true.
 
 list_facts :-
 	fact(X,Y,_),
@@ -375,20 +374,18 @@ list_facts :-
 	fail.
 list_facts :-true.
 
-%
-%
 do_over :-
-	retractall(asked(_)),
-	retractall(fact(_,_,_)).
+	abolish(asked,1),
+	abolish(fact,3).
 
 clear :-
-	retractall(asked(_)),
-	retractall(fact(_,_,_)),
-	retractall(rule(_)),
-	retractall(multivalued(_)),
-	retractall(askable(_)),
-	retractall(ghoul(_)).
-
+	abolish(asked,1),
+	abolish(fact,3),
+	abolish(rule,1),
+	abolish(multivalued,1),
+	abolish(askable,1),
+	abolish(ghoul,1).
+	
 blank_lines(0).
 blank_lines(N) :-
 	nl,
@@ -403,22 +400,31 @@ bugdisp(_).
 write_line(L) :-
 	flatten(L,LF),
 	write_lin(LF).
-
+	
 write_lin([]) :- nl.
 write_lin([H|T]) :-
 	write(H), tab(1),
 	write_lin(T).
 
-% removed member and flatten, already in SWI-Prolog
+flatten([],[]) :- !.
+flatten([[]|T],T2) :-
+	flatten(T,T2), !.
+flatten([[X|Y]|T], L) :-
+	flatten([X|[Y|T]],L), !.
+flatten([H|T],[H|T2]) :-
+	flatten(T,T2).                   
+
+member(X,[X|Y]).
+member(X,[Y|Z]) :- member(X,Z).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LDRULS - this module reads a rule file and translates it to internal
 %          Prolog format for the Clam shell
 
 load_rules :-
-	writeln('Enter file name in single quotes (ex. ''car.ckb''.): '),
-	/* read(F), */
-	load_rules('car.ckb').
+	write('Enter file name in single quotes (ex. ''car.ckb''.): '),
+	read(F),
+	load_rules(F).
 
 load_rules(F) :-
 	clear_db,
@@ -444,16 +450,16 @@ process(L) :-
 	write(L),nl.
 
 clear_db :-
-	retractall(cf_model(_)),
-	retractall(ghoul(_)),
-	retractall(askable(_,_,_,_)),
-	retractall(output(_, _, _)),
-	retractall(rule(_, _, _)).
+	abolish(cf_model,1),
+	abolish(ghoul,1),
+	abolish(askable,4),
+	abolish(output,3),
+	abolish(rule,3).
 
 bug(cf_model(X)) :- write(cf_model(X)),nl,!.
 bug(ghoul(X)):- write(ghoul(X)),nl,!.
 bug(askable(A,_,_,_)):- write('askable '),write(A),nl,!.
-bug(output(_A,V,_PL)):- write('output '),write(V),nl,!.
+bug(output(A,V,PL)):- write('output '),write(V),nl,!.
 bug(rule(N,_,_)):- write('rule '),write(N),nl,!.
 bug(X) :- write(X),nl.
 
@@ -465,10 +471,10 @@ trans(cf_model(X)) --> [cf,model,is,X].
 trans(cf_model(X)) --> [cf,X].
 trans(ghoul(X)) --> [goal,is,X].
 trans(ghoul(X)) --> [goal,X].
-trans(askable(A,M,E,P)) -->
+trans(askable(A,M,E,P)) --> 
 	[ask,A],menux(M),editchk(E),prompt(A,P).
-trans(output(A,V,PL)) -->
-	[output],phraz(av(A,V)),plist(PL).
+trans(output(A,V,PL)) --> 
+	[output],phraz(av(A,V)),plist(PL). 
 trans(rule(N,lhs(IF),rhs(THEN,CF))) --> id(N),if(IF),then(THEN,CF).
 trans(multivalued(X)) --> [multivalued,X].
 trans('Parsing error'-L,L,_).
@@ -510,10 +516,11 @@ phraz(av(Attr,yes)) --> [Attr].
 plist([Text]) --> [Text].
 plist([Htext|Ttext]) --> [Htext],plist(Ttext).
 
+read_line(L) :- read_sentence(L).
 
 % Split and tokenize a sentence
-read_sentence(LA) :-
-  read_string(current_input, ".", ". \n", _, String),
-  split_string(String, '\n\t, ', '. \n', List_Strings),
-  atomic_list_concat(List_Strings,' ', Atom),
-  atomic_list_concat(LA,' ', Atom).
+read_sentence(Rule_List) :-
+  read_string(current_input, ".", "\n\r\t ", _, String),
+  split_string(String, "\n\t, ", "", LStrings), % Remove special characters
+  atomic_list_concat(LStrings,' ', Atom),
+  atomic_list_concat(Rule_List,' ', Atom).

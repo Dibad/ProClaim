@@ -34,7 +34,7 @@ output problem is flooded wait 5 minutes and try again.
 
 ask	turn_over
 menu (yes no)
-prompt 'Does'.
+prompt 'Does the engine turn over?'.
 
 ask	lights_weak
 menu	(yes no)

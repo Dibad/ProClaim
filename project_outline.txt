@@ -15,3 +15,8 @@ existe en SWI-Prolog.
 Tarea: Definir algo que permita parsear un texto hasta el .
 4º: Definir el DFG para que pueda cargar las reglas correctamente. Indicar la
 sintaxis correcta y demás.
+5º: Con más conocimiento de como funcionan las shell y el DFG, comenzar a crear
+la clam.
+6º: Definir loop basico y cargar archivos. Funcion para tokenizar
+7º: Motor de inferencia, crear las reglas y buscar.
+Descubrir trace ha hecho la vida mucho más facil :')
