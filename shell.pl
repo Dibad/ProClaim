@@ -3,7 +3,7 @@
 
 % Define dynamic functions
 :- dynamic
-  top_goal/1, fact/2, askable/3, rule/3.  
+  top_goal/1, fact/2, askable/3, rule/3.
 % Define not operator
 :- op(900, fy, not).
 
@@ -95,24 +95,45 @@ findgoal(Goal, CurCF) :-
 
 
 query_user(A, Menu, Prompt) :-
-  nl,
-  write('-> Question about: '), writeln(A),
-  write('Options: '), writeln(Menu),
-  atomic_list_concat(Prompt, ' ', PromptString),
-  writeln(PromptString),
-  read(V),
-  writeln('CF?'),
-  read(CF),
-  /* trace, */
+  repeat,
+    nl,
+    write('-> Question about: '), writeln(A),
+    write('Options: '), writeln(Menu),
+    atomic_list_concat(Prompt, ' ', PromptString),
+    writeln(PromptString),
+    /* trace, */
+    get_user_answer(V, CF, Menu, Valid),
+    Valid = true,
+  !,
   save_fact(av(A, V), CF).
 
-save_fact(av(A, V), CF) :-
-  V = 'no',
+
+get_user_answer(V, CF, Menu, _) :-
+  read_sentence(Answer),
+  parse_answer(Answer, V, CF),
+  check_answer(V, CF, Menu).
+
+get_user_answer(_, _, _, Valid) :-
+  writeln('No es una respuesta válida!.'),
+  Valid = false.
+
+parse_answer([V], V, 100) :- !.
+parse_answer([V, CF], V, NumCF) :-
+  atom_number(CF, NumCF),
+  !.
+
+check_answer(V, CF, Menu) :-
+  member(V, Menu),
+  between(0, 100, CF).
+
+
+save_fact(av(A, 'no'), CF) :-
   NCF is 100 - CF,
   asserta(fact(av(A, 'yes'), NCF)).
 
 save_fact(av(A, V), CF) :-
   asserta(fact(av(A, V), CF)).
+
 
 fg(Goal, CurCF) :-
   rule(_, lhs(IfList), rhs(Goal, CF)),
@@ -146,19 +167,13 @@ test_if(not av(A, V), CurCF, NewCF) :-
   min_cf(CurCF, ComplCF, NewCF).
 
 min_cf(A, B, Out) :-
-  min(A, B, Out),
+  Out is min(A, B),
   Out >= 20.
-
-min(X, Y, X) :-
-  X =< Y,
-  !.
-
-min(X, Y, Y) :-
-  Y =< X.
 
 
 adjust(CF1, CF2, CF) :-
   CF is round(CF1 * CF2 / 100).
+
 
 update(Goal, NewCF, CF) :-
   fact(Goal, OldCF),
@@ -227,7 +242,7 @@ process(List) :-
 
 % Split and tokenize a sentence
 read_sentence(Rule_List) :-
-  read_string(current_input, ".", "\n\r\t ", _, String),
+  read_string(current_input, ",.", "\n\r\t ", _, String),
   split_string(String, "\n\t, ", "", LStrings), % Remove special characters
   atomic_list_concat(LStrings,' ', Atom),
   atomic_list_concat(Rule_List,' ', Atom).
@@ -264,7 +279,6 @@ then(THEN, 100) --> statement(THEN).
 
 statement(not av(A, 'yes')) --> ['not', A].
 statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
-statement(not av(A, V)) --> ['not'], [A], (['is'] ; ['are']), [V]. % Not defined
 statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(av(A, 'yes')) --> [A].
 
