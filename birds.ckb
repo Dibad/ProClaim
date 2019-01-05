@@ -4,99 +4,99 @@ rule 1
   if    nostrils is external_tubular and
         live is at_sea and
         bill is hooked
-  then  order is tubenose cf 80.
+  then  order is tubenose.
 
 rule 2
   if    feet is webbed and
         bill is flat
-  then  order is waterfowl cf 80.
+  then  order is waterfowl.
 
 rule 3
   if    eats is meat and
         feet is curved_talons and
         bill is sharp_hooked
-  then  order is falconiforms cf 80.
+  then  order is falconiforms.
 
 rule 4
   if    feet is one_long_backward_toe
-  then  order is passerformes cf 80.
+  then  order is passerformes.
 
 rule 5
   if    order is tubenose and
         size is large and
         wings is long_narrow
-  then  family is albatross cf 80.
+  then  family is albatross.
 
 rule 6
   if    order is waterfowl and
         neck is long and
         color is white and
         flight is ponderous
-  then  family is swan cf 80.
+  then  family is swan.
 
 rule 7
   if    order is waterfowl and
         size is plump and
         flight is powerful
-  then  family is goose cf 80.
+  then  family is goose.
 
 rule 8
   if    order is waterfowl and
         feed is on_water_surface and
         flight is agile
-  then  family is duck cf 80.
+  then  family is duck.
 
 rule 9
   if    order is falconiforms and
         feed is scavange and
         wings is broad
-  then  family is vulture cf 80.
+  then  family is vulture.
 
 rule 10
   if    order is falconiforms and
         wings is long_pointed and
         head is large and
         tail is narrow_at_tip
-  then  family is falcon cf 80.
+  then  family is falcon.
 
 rule 11
   if    order is passerformes and
         bill is flat and
         eats is flying_insects
-  then  family is flycatcher cf 80.
+  then  family is flycatcher.
 
 rule 12
   if    order is passerformes and
         wings is long_pointed and
         tail is forked and
         bill is short
-  then  family is swallow cf 80.
+  then  family is swallow.
 
 rule 13
   if    family is albatross and
         color is white
-  then  bird is laysan_albatross cf 80.
+  then  bird is laysan_albatross.
 
 rule 14
   if    family is albatross and
         color is dark
-  then  bird is black_footed_albatross cf 80.
+  then  bird is black_footed_albatross.
 
 rule 15
   if    order is tubenose and
         size is medium and
         flight is flap_glide
-  then  bird is fulmar cf 80.
+  then  bird is fulmar.
 
 rule 16
   if    family is swan and
         voice is muffled_musical_whistle
-  then  bird is whistling_swan cf 80.
+  then  bird is whistling_swan.
 
 rule 17
   if    family is swan and
         voice is loud_trumpeting
-  then  bird is trumpeter_swan cf 80.
+  then  bird is trumpeter_swan.
 
 rule 18
   if    family is goose and
@@ -104,7 +104,7 @@ rule 18
         country is united_states and
         head is black and
         cheek is white
-  then  bird is canada_goose cf 80.
+  then  bird is canada_goose.
 
 rule 19
   if    family is goose and
@@ -112,74 +112,74 @@ rule 19
         country is canada and
         head is black and
         cheek is white
-  then  bird is canada_goose cf 80.
+  then  bird is canada_goose.
 
 rule 20
   if    family is goose and
         color is white
-  then  bird is snow_goose cf 80.
+  then  bird is snow_goose.
 
 rule 21
   if    family is duck and
         voice is quack and
         head is green
-  then  bird is mallard cf 80.
+  then  bird is mallard.
 
 rule 22
   if    family is duck and
         voice is quack and
         color is mottled_brown
-  then  bird is mallard cf 80.
+  then  bird is mallard.
 
 rule 23
   if    family is duck and
         voice is short_whistle
-  then  bird is pintail cf 80.
+  then  bird is pintail.
 
 rule 24
   if    family is vulture and
         flight_profile is v_shaped
-  then  bird is turkey_vulture cf 80.
+  then  bird is turkey_vulture.
 
 rule 25
   if    family is vulture and
         flight_profile is flat
-  then  bird is california_condor cf 80.
+  then  bird is california_condor.
 
 rule 26
   if    family is falcon and
         eats is insects
-  then  bird is sparrow_hawk cf 80.
+  then  bird is sparrow_hawk.
 
 rule 27
   if    family is falcon and
         eats is birds
-  then  bird is peregrine_falcon cf 80.
+  then  bird is peregrine_falcon.
 
 rule 28
   if    family is flycatcher and
         tail is long_rusty
-  then  bird is great_crested_flycatcher cf 80.
+  then  bird is great_crested_flycatcher.
 
 rule 29
   if    family is flycatcher and
         throat is white
-  then  bird is ash_throated_flycatcher cf 80.
+  then  bird is ash_throated_flycatcher.
 
 rule 30
   if    family is swallow and
         tail is forked
-  then  bird is barn_swallow cf 80.
+  then  bird is barn_swallow.
 
 rule 31
   if    family is swallow and
         tail is square
-  then  bird is cliff_swallow cf 80.
+  then  bird is cliff_swallow.
 
 rule 32
   if    family is swallow and
         color is dark
-  then  bird is purple_martin cf 80.
+  then  bird is purple_martin.
 
 rule 33
   if    region is new_england

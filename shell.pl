@@ -65,7 +65,7 @@ load_file(File) :-
 
 % A. Clean previous rules, set file as stream input and start iterating.
 load_rules(File) :-
-  % clean_db,
+  clear_db,
   see(File),
   load_rules,
   writeln('Done loading rules!.'),
@@ -103,11 +103,11 @@ read_sentence(ListAtoms) :-
 
 
 
-
 % ============  Solve  ====================
 
 % Start the inference and pursue top_goal.
 solve :-
+  clear_facts,
   top_goal(A),
   findgoal(av(A, _), _),
   print_goals(A),
@@ -117,6 +117,19 @@ solve :-
   nl,
   writeln('Couldn''t find any goal :(').
 
+
+% ============  Clean  ====================
+
+% Delete all knowledge from the dynamic database
+clear_db :-
+  retractall(top_goal(_)),
+  retractall(rule(_, _, _)),
+  retractall(askable(_, _, _)),
+  clear_facts.
+
+% Delete only facts created from previous consults with solve.
+clear_facts :-
+  retractall(fact(_, _)).
 
 
 % ============  Print Goal  ===============
@@ -132,6 +145,7 @@ print_goals(A) :-
 
 % ============  Find Goal  ================
 
+% Fix for negative values to work
 findgoal(not Goal, CF) :-
   findgoal(Goal, CF),
   !.
@@ -151,58 +165,16 @@ findgoal(av(A, V), CF) :-
   findgoal(av(A, V), CF).
 
 
-% Search sub-questions
+% Search if Goal appears as a rhs of any rule
 findgoal(Goal, CF) :-
-  fg(Goal, CF),
-  !.
+  fg(Goal, CF).
 
-
-query_user(A, Menu, Prompt) :-
-  repeat,
-    nl,
-    write('-> Question about: '), writeln(A),
-    write('Options: '), writeln(Menu),
-    atomic_list_concat(Prompt, ' ', PromptString),
-    writeln(PromptString),
-    /* trace, */
-    get_user_answer(V, CF, Menu, Valid),
-    Valid = true,
-  !,
-  save_fact(av(A, V), CF).
-
-
-get_user_answer(V, CF, Menu, _) :-
-  read_sentence(Answer),
-  parse_answer(Answer, V, CF),
-  check_answer(V, CF, Menu).
-
-get_user_answer(_, _, _, Valid) :-
-  writeln('No es una respuesta válida!.'),
-  Valid = false.
-
-parse_answer([V], V, 100) :- !.
-parse_answer([V, CF], V, NumCF) :-
-  atom_number(CF, NumCF),
-  !.
-
-check_answer(V, CF, Menu) :-
-  member(V, Menu),
-  between(0, 100, CF).
-
-
-save_fact(av(A, 'no'), CF) :-
-  NCF is 100 - CF,
-  asserta(fact(av(A, 'yes'), NCF)).
-
-save_fact(av(A, V), CF) :-
-  asserta(fact(av(A, V), CF)).
-
-
+% Search rules with rhs of Goal. Prove its lhs, and update new CF of facts
 fg(Goal, CurCF) :-
   rule(_, lhs(IfList), rhs(Goal, CF)),
   atom_number(CF, NumCF),
-  prove(IfList, Tally),
-  adjust(NumCF, Tally, NewCF),
+  prove(IfList, LhsCF),
+  adjust(NumCF, LhsCF, NewCF),
   update(Goal, NewCF, CurCF),
   CurCF = 100,
   !.
@@ -211,14 +183,67 @@ fg(Goal, CF) :-
   fact(Goal, CF).
 
 
-prove(IfList, RuleCF) :-
-  prov(IfList, 100, RuleCF).
 
-prov([], RuleCF, RuleCF).
+% ============  Query user  ===============
 
-prov([H | T], CurCF, RuleCF) :-
+% Show a menu to ask the value of the attribute to the user
+query_user(A, Menu, Prompt) :-
+  repeat,
+    nl,
+    write('-> Question about: '), writeln(A),
+    write('Options: '), writeln(Menu),
+    atomic_list_concat(Prompt, ' ', PromptString),
+    writeln(PromptString),
+    get_user_answer(V, CF, Menu, Valid),
+    Valid = true,
+  !,
+  save_fact(av(A, V), CF).
+
+
+% A. Get user input as a list of words. Parse it and check if its correct
+get_user_answer(V, CF, Menu, _) :-
+  read_sentence(Answer),
+  parse_answer(Answer, V, CF),
+  check_answer(V, CF, Menu).
+
+% B. If its not correct, repeat loop by assigning false to Valid
+get_user_answer(_, _, _, Valid) :-
+  writeln('No es una respuesta válida!.'),
+  Valid = false.
+
+% Input can be: value. (implicit cf of 100), or value cf.
+parse_answer([V], V, 100) :- !.
+parse_answer([V, CF], V, NumCF) :-
+  atom_number(CF, NumCF),
+  !.
+
+% Chech that answer is a option of the menu, and that CF is between the range
+check_answer(V, CF, Menu) :-
+  member(V, Menu),
+  between(0, 100, CF).
+
+
+% A. Save negative statements as positive ones with complementary CF
+save_fact(av(A, 'no'), CF) :-
+  NCF is 100 - CF,
+  asserta(fact(av(A, 'yes'), NCF)).
+
+% B. Save positive statements as they are
+save_fact(av(A, V), CF) :-
+  asserta(fact(av(A, V), CF)).
+
+
+% ============  Prove     =================
+
+prove(IfList, LhsCF) :-
+  prov(IfList, 100, LhsCF),
+  !.
+
+prov([], LhsCF, LhsCF).
+prov([H | T], CurCF, LhsCF) :-
   test_if(H, CurCF, NewCF),
-  prov(T, NewCF, RuleCF).
+  prov(T, NewCF, LhsCF).
+
 
 test_if(av(A, V), CurCF, NewCF) :-
   findgoal(av(A, V), CF),
@@ -234,9 +259,19 @@ min_cf(A, B, Out) :-
   Out >= 20.
 
 
+
+% ============  Adjust  ===================
+
 adjust(CF1, CF2, CF) :-
   CF is round(CF1 * CF2 / 100).
 
+
+
+% ============  Update  ===================
+
+% A. ,
+update(Goal, CF, CF) :-
+  asserta(fact(Goal, CF)).
 
 update(Goal, NewCF, CF) :-
   fact(Goal, OldCF),
@@ -245,34 +280,8 @@ update(Goal, NewCF, CF) :-
   asserta(fact(Goal, CF)),
   !.
 
-update(Goal, CF, CF) :-
-  asserta(fact(Goal, CF)).
-
 combine(CF1, CF2, CF) :-
-  CF1 >= 0,
-  CF2 >= 0,
   CF is round(CF1 + CF2 * (100 - CF1) / 100).
-
-combine(CF1, CF2, CF) :-
-  CF1 < 0,
-  CF2 < 0,
-  X is - ( -CF1 -CF2 * (100 + CF1) / 100 ),
-  CF is round(X).
-
-combine(CF1, CF2, CF) :-
-  (CF1 < 0 ; CF2 < 0),
-  (CF1 > 0 ; CF2 > 0),
-  abs_minimum(CF1, CF2, MCF),
-  X is 100 * (CF1 + CF2) / (100 - MCF),
-  CF is round(X).
-
-abs_minimum(A,B,X) :-
-	absolute(A, AA),
-	absolute(B, BB),
-	minimum(AA,BB,X).
-
-absolute(X, X) :- X >= 0.
-absolute(X, Y) :- X < 0, Y is -X.
 
 
 
@@ -302,7 +311,7 @@ iflist([IF]) --> statement(IF), ['then'].
 iflist([H | T]) --> statement(H), (['and'] ; [', ']), iflist(T).
 
 then(THEN, CF) --> statement(THEN), [cf], [CF].
-then(THEN, 100) --> statement(THEN).
+then(THEN, '100') --> statement(THEN).
 
 statement(not av(A, 'yes')) --> ['not', A].
 statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
