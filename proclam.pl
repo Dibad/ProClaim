@@ -11,7 +11,7 @@
 :- initialization(start). % Initialize shell on start
 
 :- dynamic
-  top_goal/1, fact/2, askable/3, rule/3.
+  fact/2, askable/3, rule/3, ruletrace/0.
 
 :- op(900, fy, not). % Define not operator instead of using \+
 
@@ -23,7 +23,7 @@ start :-
   repeat,
     nl,
     writeln('Commands: solve. load. reset. or exit.'),
-    read(Command),
+    read_sentence(Command),
     do(Command),
     Command = 'exit',
   !.
@@ -31,13 +31,15 @@ start :-
 
 
 % ============  Commands  =================
-do('solve') :- solve, !.
-do('load') :- load_file, !.
-do('consult') :- consult, !.
-do('reset') :- writeln('Database clear!'), clear_db, !.
-do('exit').
-do(X) :-
-  write(X),
+do(['solve' | _]) :- solve, !.
+do(['load' | _]) :- load_file, !.
+do(['consult' | _]) :- consult, !.
+do(['trace' | Val]) :- trace(Val), !.
+do(['reset' | _]) :- writeln('Database clear!'), clear_db, !.
+do(['exit' | _]).
+do(Command) :-
+  atomic_list_concat(Command,' ', String), % ["a", "b"] --> 'a b'
+  write(String),
   writeln(' is not a valid command!').
 
 
@@ -55,6 +57,22 @@ clear_db :-
 clear_facts :-
   retractall(fact(_, _)).
 
+
+
+% ============  Trace  ====================
+
+trace(['on']) :-
+  asserta(ruletrace),
+  writeln('Trace rule is ON.'),
+  !.
+
+trace(['off']) :-
+  retract(ruletrace),
+  writeln('Trace rule is OFF.'),
+  !.
+
+trace([X]) :-
+  write(X), writeln(' is not a valid argument! Must be on/off').
 
 
 
@@ -126,12 +144,18 @@ read_sentence(ListAtoms) :-
 % A. Start the inference and find a goal with the A from top_goal
 solve :-
   clear_facts,
+  current_predicate(top_goal/1),
   top_goal(A),
   findgoal(av(A, _), _),
-  print_goals(A),
+  print_goals(A).
+
+% B. Load knowledge database first (to define top_goal predicate)
+solve :-
+  not current_predicate(top_goal/1),
+  writeln('First, load a knowledge database using load.'),
   !.
 
-% B. No result found
+% C. No result found
 solve :-
   nl,
   writeln('Couldn''t find any goal :(').
