@@ -3,8 +3,7 @@
 
 % Define dynamic functions
 :- dynamic
-  top_goal/1, fact/2, askable/3, rule/3.
-
+  top_goal/1, fact/2, askable/3, rule/3.  
 % Define not operator
 :- op(900, fy, not).
 
@@ -70,10 +69,8 @@ print_goal(A) :-
   write(A), write(': '), write(V), write(' - '), write(CF), nl,
   fail. % Necessary to show all goals
 
-% From problem find questions
 findgoal(not Goal, CF) :-
-  findgoal(Goal, CF).
-  NCF is 100 - CF,
+  findgoal(Goal, CF),
   !.
 
 % Value already known
@@ -91,6 +88,7 @@ findgoal(av(A, V), CF) :-
   findgoal(av(A, V), CF).
 
 
+% Search sub-questions
 findgoal(Goal, CurCF) :-
   fg(Goal, CurCF),
   !.
@@ -105,8 +103,16 @@ query_user(A, Menu, Prompt) :-
   read(V),
   writeln('CF?'),
   read(CF),
-  asserta(fact(av(A, V), CF)).
+  /* trace, */
+  save_fact(av(A, V), CF).
 
+save_fact(av(A, V), CF) :-
+  V = 'no',
+  NCF is 100 - CF,
+  asserta(fact(av(A, 'yes'), NCF)).
+
+save_fact(av(A, V), CF) :-
+  asserta(fact(av(A, V), CF)).
 
 fg(Goal, CurCF) :-
   rule(_, lhs(IfList), rhs(Goal, CF)),
@@ -121,15 +127,27 @@ fg(Goal, CF) :-
   fact(Goal, CF).
 
 
-prove(IfList, Tally) :-
-  prov(IfList, 100, Tally).
+prove(IfList, RuleCF) :-
+  prov(IfList, 100, RuleCF).
 
-prov([], Tally, Tally).
-prov([H | T], CurTal, Tally) :-
-  findgoal(H, CF),
-  min(CurTal, CF, Tal),
-  Tal >= 20,
-  prov(T, Tal, Tally).
+prov([], RuleCF, RuleCF).
+
+prov([H | T], CurCF, RuleCF) :-
+  test_if(H, CurCF, NewCF),
+  prov(T, NewCF, RuleCF).
+
+test_if(av(A, V), CurCF, NewCF) :-
+  findgoal(av(A, V), CF),
+  min_cf(CurCF, CF, NewCF).
+
+test_if(not av(A, V), CurCF, NewCF) :-
+  findgoal(not av(A, V), CF),
+  ComplCF is 100 - CF,
+  min_cf(CurCF, ComplCF, NewCF).
+
+min_cf(A, B, Out) :-
+  min(A, B, Out),
+  Out >= 20.
 
 min(X, Y, X) :-
   X =< Y,
@@ -138,17 +156,9 @@ min(X, Y, X) :-
 min(X, Y, Y) :-
   Y =< X.
 
+
 adjust(CF1, CF2, CF) :-
-  X is CF1 * CF2 / 100,
-  int_round(X, CF).
-
-int_round(X, I) :-
-  X >= 0,
-  I is integer(X + 0.5).
-
-int_round(X, I) :-
-  X < 0,
-  I is integer(X - 0.5).
+  CF is round(CF1 * CF2 / 100).
 
 update(Goal, NewCF, CF) :-
   fact(Goal, OldCF),
@@ -163,21 +173,20 @@ update(Goal, CF, CF) :-
 combine(CF1, CF2, CF) :-
   CF1 >= 0,
   CF2 >= 0,
-  X is CF1 + CF2 * (100 - CF1) / 100,
-  int_round(X, CF).
+  CF is round(CF1 + CF2 * (100 - CF1) / 100).
 
 combine(CF1, CF2, CF) :-
   CF1 < 0,
   CF2 < 0,
   X is - ( -CF1 -CF2 * (100 + CF1) / 100 ),
-  int_round(X, CF).
+  CF is round(X).
 
 combine(CF1, CF2, CF) :-
   (CF1 < 0 ; CF2 < 0),
   (CF1 > 0 ; CF2 > 0),
   abs_minimum(CF1, CF2, MCF),
   X is 100 * (CF1 + CF2) / (100 - MCF),
-  int_round(X, CF).
+  CF is round(X).
 
 abs_minimum(A,B,X) :-
 	absolute(A, AA),
@@ -253,8 +262,8 @@ iflist([H | T]) --> statement(H), (['and'] ; [', ']), iflist(T).
 then(THEN, CF) --> statement(THEN), [cf], [CF].
 then(THEN, 100) --> statement(THEN).
 
-statement(av(A, 'no')) --> ['not', A].
-statement(av(A, 'no')) --> ['not'], (['a'] ; ['an']), [A].
+statement(not av(A, 'yes')) --> ['not', A].
+statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
 statement(not av(A, V)) --> ['not'], [A], (['is'] ; ['are']), [V]. % Not defined
 statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(av(A, 'yes')) --> [A].
