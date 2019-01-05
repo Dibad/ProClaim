@@ -1,7 +1,7 @@
 goal problem.
 
 rule 1
-if	not turn_over and
+if  not turn_over and
 battery_bad
 then	problem is battery cf 100.
 

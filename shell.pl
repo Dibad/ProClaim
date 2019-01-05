@@ -47,7 +47,7 @@ do(X) :-
 load_file :-
   writeln('Type the name of the file between single quotes (''*.kb''): '),
   read(File),
-  load_file('car.ckb').
+  load_file(File).
 
 % B. Check if file exists and load rules
 load_file(File) :-
@@ -83,7 +83,7 @@ load_rules :-
 % Transform rule from DCG to internal format.
 process(['']).
 process(List) :-
-  translate(Rule, List, []), % --> Call to DCG
+  phrase(translate(Rule), List), % Call DCG
   assertz(Rule), % Add the Rule to the dynamic database
   writeln(Rule),
   !.
@@ -96,10 +96,11 @@ process(List) :-
 % Split a sentence, using spaces as separator and skipping escape characters
 % NOTE: MUST be a list of ATOMS ['a', 'b', ...], not STRINGS ["a", "b", ...]
 read_sentence(ListAtoms) :-
-  read_string(current_input, ",.", "\n\r\t ", _, String),
-  split_string(String, "\n\t, ", "", ListStrings), % Remove special characters
+  read_string(current_input, ".", "", _, String),
+  split_string(String, "\n\t, ", "()\s\n\t", ListStrings), % Remove special characters
   atomic_list_concat(ListStrings,' ', Atom), % ["a", "b"] --> 'a b'
   atomic_list_concat(ListAtoms,' ', Atom). % 'a b' --> ['a', 'b']
+
 
 
 
@@ -128,6 +129,9 @@ print_goals(A) :-
     (write('\t'), write(A), write(': '), write(V), write(' cf '), writeln(CF))).
 
 
+
+% ============  Find Goal  ================
+
 findgoal(not Goal, CF) :-
   findgoal(Goal, CF),
   !.
@@ -148,8 +152,8 @@ findgoal(av(A, V), CF) :-
 
 
 % Search sub-questions
-findgoal(Goal, CurCF) :-
-  fg(Goal, CurCF),
+findgoal(Goal, CF) :-
+  fg(Goal, CF),
   !.
 
 
@@ -272,13 +276,12 @@ absolute(X, Y) :- X < 0, Y is -X.
 
 
 
-% -- DCG for parsing text
+% ============  DCG  ======================
 
-% KB statements
+% -- Statements that the DCG can generate
 translate(top_goal(X)) --> ['goal', X].
 translate(top_goal(X)) --> ['goal', 'is', X].
-translate(askable(A, M, P)) -->
-  ['ask', A], menu(M), prompt(P).
+translate(askable(A, M, P)) --> ['ask', A], menu(M), prompt(P).
 translate(rule(N, lhs(IF), rhs(THEN, CF))) --> id(N), if(IF), then(THEN, CF).
 
 
