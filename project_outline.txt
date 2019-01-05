@@ -20,3 +20,6 @@ la clam.
 6º: Definir loop basico y cargar archivos. Funcion para tokenizar
 7º: Motor de inferencia, crear las reglas y buscar.
 Descubrir trace ha hecho la vida mucho más facil :')
+8º: Arreglos varios. Eliminar reglas innecesarias y hacer que definir los cf sea
+más facil y esté más contenido (solo entre 0 y 100)
+9º: Aádir más ajustes para controlar los rangos de las variables

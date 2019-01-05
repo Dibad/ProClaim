@@ -1,10 +1,10 @@
 %  +----------------------------------+
 %  |                                  |
-%  |             ClamPro              |
+%  |            ProCla(i)m            |
 %  |                                  |
 %  +----------------------------------+
 % Prolog Shell for Expert Sytems based on Clam, from the book "Building Expert
-% Systems with Prolog" with extended features.
+% Systems with Prolog", with extended features.
 
 
 % ============  Prolog Defs  ==============
@@ -22,7 +22,7 @@ start :-
   writeln('\t-- ClamPro --'), writeln('Prolog Shell for Expert Systems.'),
   repeat,
     nl,
-    writeln('Commands: solve. load. or exit.'),
+    writeln('Commands: solve. load. reset. or exit.'),
     read(Command),
     do(Command),
     Command = 'exit',
@@ -34,10 +34,27 @@ start :-
 do('solve') :- solve, !.
 do('load') :- load_file, !.
 do('consult') :- consult, !.
+do('reset') :- writeln('Database clear!'), clear_db, !.
 do('exit').
 do(X) :-
   write(X),
   writeln(' is not a valid command!').
+
+
+
+% ============  Clear  ====================
+
+% Delete all knowledge from the dynamic database
+clear_db :-
+  retractall(top_goal(_)),
+  retractall(rule(_, _, _)),
+  retractall(askable(_, _, _)),
+  clear_facts.
+
+% Delete only facts created from previous consults with solve.
+clear_facts :-
+  retractall(fact(_, _)).
+
 
 
 
@@ -51,6 +68,7 @@ load_file :-
 
 % B. Check if file exists and load rules
 load_file(File) :-
+  atomic(File),
   exists_file(File),
   load_rules(File),
   write(File), writeln(' rules have been loaded!.').
@@ -105,7 +123,7 @@ read_sentence(ListAtoms) :-
 
 % ============  Solve  ====================
 
-% Start the inference and pursue top_goal.
+% A. Start the inference and find a goal with the A from top_goal
 solve :-
   clear_facts,
   top_goal(A),
@@ -113,23 +131,11 @@ solve :-
   print_goals(A),
   !.
 
+% B. No result found
 solve :-
   nl,
   writeln('Couldn''t find any goal :(').
 
-
-% ============  Clean  ====================
-
-% Delete all knowledge from the dynamic database
-clear_db :-
-  retractall(top_goal(_)),
-  retractall(rule(_, _, _)),
-  retractall(askable(_, _, _)),
-  clear_facts.
-
-% Delete only facts created from previous consults with solve.
-clear_facts :-
-  retractall(fact(_, _)).
 
 
 % ============  Print Goal  ===============
@@ -167,7 +173,8 @@ findgoal(av(A, V), CF) :-
 
 % Search if Goal appears as a rhs of any rule
 findgoal(Goal, CF) :-
-  fg(Goal, CF).
+  fg(Goal, CF),
+  !.
 
 % Search rules with rhs of Goal. Prove its lhs, and update new CF of facts
 fg(Goal, CurCF) :-
@@ -211,11 +218,13 @@ get_user_answer(_, _, _, Valid) :-
   writeln('No es una respuesta válida!.'),
   Valid = false.
 
+
 % Input can be: value. (implicit cf of 100), or value cf.
 parse_answer([V], V, 100) :- !.
 parse_answer([V, CF], V, NumCF) :-
   atom_number(CF, NumCF),
   !.
+
 
 % Chech that answer is a option of the menu, and that CF is between the range
 check_answer(V, CF, Menu) :-
@@ -233,16 +242,16 @@ save_fact(av(A, V), CF) :-
   asserta(fact(av(A, V), CF)).
 
 
+
 % ============  Prove     =================
 
 prove(IfList, LhsCF) :-
-  prov(IfList, 100, LhsCF),
-  !.
+  prove(IfList, 100, LhsCF).
 
-prov([], LhsCF, LhsCF).
-prov([H | T], CurCF, LhsCF) :-
+prove([], LhsCF, LhsCF).
+prove([H | T], CurCF, LhsCF) :-
   test_if(H, CurCF, NewCF),
-  prov(T, NewCF, LhsCF).
+  prove(T, NewCF, LhsCF).
 
 
 test_if(av(A, V), CurCF, NewCF) :-
@@ -269,10 +278,7 @@ adjust(CF1, CF2, CF) :-
 
 % ============  Update  ===================
 
-% A. ,
-update(Goal, CF, CF) :-
-  asserta(fact(Goal, CF)).
-
+% A. Remove old fact and add new one with updated CF
 update(Goal, NewCF, CF) :-
   fact(Goal, OldCF),
   combine(NewCF, OldCF, CF),
@@ -280,6 +286,12 @@ update(Goal, NewCF, CF) :-
   asserta(fact(Goal, CF)),
   !.
 
+% B. Add fact for first time.
+update(Goal, CF, CF) :-
+  asserta(fact(Goal, CF)).
+
+
+% Equation used to calculate the new CF
 combine(CF1, CF2, CF) :-
   CF is round(CF1 + CF2 * (100 - CF1) / 100).
 
@@ -317,4 +329,3 @@ statement(not av(A, 'yes')) --> ['not', A].
 statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
 statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(av(A, 'yes')) --> [A].
-
