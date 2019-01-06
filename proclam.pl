@@ -15,6 +15,7 @@
 
 :- op(900, fy, not). % Define not operator instead of using \+
 
+ruletrace.
 
 
 % ============  Main Loop  ================
@@ -38,8 +39,7 @@ do(['trace' | Val]) :- trace(Val), !.
 do(['reset' | _]) :- writeln('Database clear!'), clear_db, !.
 do(['exit' | _]).
 do(Command) :-
-  atomic_list_concat(Command,' ', String), % ["a", "b"] --> 'a b'
-  write(String),
+  write_list(Command),
   writeln(' is not a valid command!').
 
 
@@ -138,6 +138,16 @@ read_sentence(ListAtoms) :-
   atomic_list_concat(ListAtoms,' ', Atom). % 'a b' --> ['a', 'b']
 
 
+% Functions to easily write a list as a string
+write_list(L) :-
+  atomic_list_concat(L, ' ', String),
+  write(String).
+
+write_list_ln(L) :-
+  write_list(L),
+  nl.
+
+
 
 % ============  Solve  ====================
 
@@ -202,9 +212,11 @@ findgoal(Goal, CF) :-
 
 % Search rules with rhs of Goal. Prove its lhs, and update new CF of facts
 fg(Goal, CurCF) :-
-  rule(_, lhs(IfList), rhs(Goal, CF)),
+  rule(N, lhs(IfList), rhs(Goal, CF)),
   atom_number(CF, NumCF),
-  prove(IfList, LhsCF),
+  bugdisp(['call rule', N]),
+  prove(N, IfList, LhsCF),
+  bugdisp(['exit rule', N]),
   adjust(NumCF, LhsCF, NewCF),
   update(Goal, NewCF, CurCF),
   CurCF = 100,
@@ -212,6 +224,16 @@ fg(Goal, CurCF) :-
 
 fg(Goal, CF) :-
   fact(Goal, CF).
+
+
+
+% ============  Bugdisp  ==================
+
+bugdisp(L) :-
+  ruletrace,
+  nl,
+  tab(1), write_list_ln(L),
+  !.
 
 
 
@@ -223,8 +245,7 @@ query_user(A, Menu, Prompt) :-
     nl,
     write('-> Question about: '), writeln(A),
     write('Options: '), writeln(Menu),
-    atomic_list_concat(Prompt, ' ', PromptString),
-    writeln(PromptString),
+    write_list_ln(Prompt),
     get_user_answer(V, CF, Menu, Valid),
     Valid = true,
   !,
@@ -269,13 +290,19 @@ save_fact(av(A, V), CF) :-
 
 % ============  Prove     =================
 
-prove(IfList, LhsCF) :-
-  prove(IfList, 100, LhsCF).
+prove(_, IfList, LhsCF) :-
+  prov(IfList, 100, LhsCF),
+  !.
 
-prove([], LhsCF, LhsCF).
-prove([H | T], CurCF, LhsCF) :-
+prove(N, _, _) :-
+  bugdisp(['fail rule', N]),
+  fail.
+
+
+prov([], LhsCF, LhsCF).
+prov([H | T], CurCF, LhsCF) :-
   test_if(H, CurCF, NewCF),
-  prove(T, NewCF, LhsCF).
+  prov(T, NewCF, LhsCF).
 
 
 test_if(av(A, V), CurCF, NewCF) :-
