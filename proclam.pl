@@ -23,7 +23,7 @@ start :-
   writeln('\t-- ClamPro --'), writeln('Prolog Shell for Expert Systems.'),
   repeat,
     nl,
-    writeln('Commands: solve. load. reset. or exit.'),
+    writeln('Commands: solve. load. trace. how. reset. or exit.'),
     read_sentence(Command),
     do(Command),
     Command = ['exit'],
@@ -35,6 +35,7 @@ start :-
 do(['solve']) :- solve, !.
 do(['load']) :- load_file, !.
 do(['trace' | Val]) :- trace(Val), !.
+do(['how']) :- how, !.
 do(['reset']) :- writeln('Database clear!'), clear_db, !.
 do(['exit']).
 do(Command) :-
@@ -346,6 +347,53 @@ combine(CF1, CF2, CF) :-
   CF is round(CF1 + CF2 * (100 - CF1) / 100).
 
 
+
+% ============  Update  ===================
+
+how :-
+  writeln('Goal? '), read_sentence(X),
+  /* trace, */
+  pretty(Goal, X),
+  how(Goal).
+
+how(Goal) :-
+  fact(Goal, CF, Rules),
+  CF >= 20,
+  pretty(Goal, PG),
+  atomic_list_concat(PG, ' ', SPG),
+  write_list_ln([SPG, 'was', 'derived', 'from', 'rules:' | Rules]),
+  list_rules(Rules),
+  fail.
+
+how(_).
+
+
+pretty(av(A, 'yes'), [A]) :- !.
+pretty(not av(A, 'yes'), [not, A]) :- !.
+pretty(av(A, 'no'), ['not', A]) :- !.
+pretty(not av(A, V), ['not', A, 'is', V]).
+pretty(av(A, V), [A, 'is', V]).
+
+list_rules([]).
+list_rules([R | X]) :-
+  list_rule(R),
+  list_rules(X).
+
+list_rule(N) :-
+  rule(N, lhs(IfList), rhs(Goal, CF)),
+  write_list_ln(['rule ', N]),
+  write_list_ln(['If']),
+  write_ifs(IfList),
+  write_list_ln(['Then']),
+  pretty(Goal, PG),
+  atomic_list_concat(PG, ' ', SPG),
+  write_list_ln([' ', SPG, CF]).
+
+write_ifs([]).
+write_ifs([H | T]) :-
+  pretty(H, HP),
+  tab(5), write_list_ln(HP),
+  write_ifs(T).
 
 % ============  DCG  ======================
 
