@@ -11,7 +11,7 @@
 :- initialization(start). % Initialize shell on start
 
 :- dynamic
-  fact/2, askable/3, rule/3, ruletrace/0, output/3.
+  fact/3, askable/3, rule/3, ruletrace/0, output/3.
 
 :- op(900, fy, not). % Define not operator instead of using \+
 
@@ -54,7 +54,7 @@ clear_db :-
 
 % Delete only facts created from previous consults with solve.
 clear_facts :-
-  retractall(fact(_, _)).
+  retractall(fact(_, _, _)).
 
 
 
@@ -177,7 +177,7 @@ solve :-
 print_goals(A) :-
   nl,
   writeln('Sucess! Found: '),
-  forall(fact(av(A, V), CF),
+  forall(fact(av(A, V), CF, _),
     (write('\t- '), write(A), write(': '), write(V), write(' cf '), writeln(CF),
     print_solution(A, V))).
 
@@ -201,13 +201,13 @@ findgoal(not Goal, NCF) :-
 
 % Value already known
 findgoal(av(A, V), CF) :-
-  fact(av(A, V), CF),
+  fact(av(A, V), CF, _),
   !.
 
 
 % Ask user
 findgoal(av(A, V), CF) :-
-  not fact(av(A, _), _),
+  not fact(av(A, _), _, _),
   askable(A, Menu, Prompt),
   query_user(A, Menu, Prompt),
   !,
@@ -227,12 +227,12 @@ fg(Goal, CurCF) :-
   prove(N, IfList, LhsCF),
   bugdisp(['exit rule', N]),
   adjust(NumCF, LhsCF, NewCF),
-  update(Goal, NewCF, CurCF),
+  update(Goal, NewCF, CurCF, N),
   CurCF = 100,
   !.
 
 fg(Goal, CF) :-
-  fact(Goal, CF).
+  fact(Goal, CF, _).
 
 
 
@@ -291,11 +291,11 @@ check_answer(V, CF, Menu) :-
 % A. Save negative statements as positive ones with complementary CF
 save_fact(av(A, 'no'), CF) :-
   NCF is 100 - CF,
-  asserta(fact(av(A, 'yes'), NCF)).
+  asserta(fact(av(A, 'yes'), NCF, _)).
 
 % B. Save positive statements as they are
 save_fact(av(A, V), CF) :-
-  asserta(fact(av(A, V), CF)).
+  asserta(fact(av(A, V), CF, _)).
 
 
 
@@ -329,16 +329,16 @@ adjust(CF1, CF2, CF) :-
 % ============  Update  ===================
 
 % A. Remove old fact and add new one with updated CF
-update(Goal, NewCF, CF) :-
-  fact(Goal, OldCF),
+update(Goal, NewCF, CF, RuleN) :-
+  fact(Goal, OldCF, _),
   combine(NewCF, OldCF, CF),
-  retract(fact(Goal, OldCF)),
-  asserta(fact(Goal, CF)),
+  retract(fact(Goal, OldCF, OldRules)),
+  asserta(fact(Goal, CF, [RuleN | OldRules])),
   !.
 
 % B. Add fact for first time.
-update(Goal, CF, CF) :-
-  asserta(fact(Goal, CF)).
+update(Goal, CF, CF, RuleN) :-
+  asserta(fact(Goal, CF, [RuleN])).
 
 
 % Equation used to calculate the new CF

@@ -23,3 +23,5 @@ Descubrir trace ha hecho la vida mucho más facil :')
 8º: Arreglos varios. Eliminar reglas innecesarias y hacer que definir los cf sea
 más facil y esté más contenido (solo entre 0 y 100)
 9º: Aádir más ajustes para controlar los rangos de las variables
+10º: Guardar los facts de forma homogénea (Convertir los 'no' en 'yes' con CF
+complementario)
