@@ -11,7 +11,7 @@
 :- initialization(start). % Initialize shell on start
 
 :- dynamic
-  fact/2, askable/3, rule/3, ruletrace/0.
+  fact/2, askable/3, rule/3, ruletrace/0, output/3.
 
 :- op(900, fy, not). % Define not operator instead of using \+
 
@@ -178,8 +178,16 @@ print_goals(A) :-
   nl,
   writeln('Sucess! Found: '),
   forall(fact(av(A, V), CF),
-    (write('\t'), write(A), write(': '), write(V), write(' cf '), writeln(CF))).
+    (write('\t- '), write(A), write(': '), write(V), write(' cf '), writeln(CF),
+    print_solution(A, V))).
 
+
+print_solution(A, V) :-
+  output(A, V, SolutionList),
+  write('\t- Solution: '), write_list_ln(SolutionList), nl,
+  !.
+
+print_solution(_, _).
 
 
 % ============  Find Goal  ================
@@ -346,6 +354,7 @@ translate(top_goal(X)) --> ['goal', X].
 translate(top_goal(X)) --> ['goal', 'is', X].
 translate(askable(A, M, P)) --> ['ask', A], menu(M), prompt(P).
 translate(rule(N, lhs(IF), rhs(THEN, CF))) --> id(N), if(IF), then(THEN, CF).
+translate(output(A, V, PL)) -->  ['output'], statement(av(A, V)), itemlist(PL).
 
 
 % Menu structure

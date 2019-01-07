@@ -28,9 +28,9 @@ if	turn_over and
 gas_gauge is low
 then problem is out_of_gas cf 30.
 
-output problem is battery get the battery recharged.
-output problem is out_of_gas start walking or hitching to a gas station.
-output problem is flooded wait 5 minutes and try again.
+output problem is battery Get the battery recharged.
+output problem is out_of_gas Start walking or hitching to a gas station.
+output problem is flooded Wait 5 minutes and try again.
 
 ask	turn_over
 menu yes no
