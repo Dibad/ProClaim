@@ -26,18 +26,17 @@ start :-
     writeln('Commands: solve. load. reset. or exit.'),
     read_sentence(Command),
     do(Command),
-    Command = 'exit',
+    Command = ['exit'],
   !.
 
 
 
 % ============  Commands  =================
-do(['solve' | _]) :- solve, !.
-do(['load' | _]) :- load_file, !.
-do(['consult' | _]) :- consult, !.
+do(['solve']) :- solve, !.
+do(['load']) :- load_file, !.
 do(['trace' | Val]) :- trace(Val), !.
-do(['reset' | _]) :- writeln('Database clear!'), clear_db, !.
-do(['exit' | _]).
+do(['reset']) :- writeln('Database clear!'), clear_db, !.
+do(['exit']).
 do(Command) :-
   write_list(Command),
   writeln(' is not a valid command!').
@@ -234,6 +233,8 @@ bugdisp(L) :-
   nl,
   tab(1), write_list_ln(L),
   !.
+
+bugdisp(_).
 
 
 
