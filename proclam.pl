@@ -185,8 +185,13 @@ print_goals(A) :-
 % ============  Find Goal  ================
 
 % Fix for negative values to work
-findgoal(not Goal, CF) :-
+findgoal(not av(A, 'yes'), CF) :-
+  findgoal(av(A, 'yes'), CF),
+  !.
+
+findgoal(not Goal, NCF) :-
   findgoal(Goal, CF),
+  NCF is 100 - CF,
   !.
 
 % Value already known
@@ -214,6 +219,7 @@ fg(Goal, CurCF) :-
   rule(N, lhs(IfList), rhs(Goal, CF)),
   atom_number(CF, NumCF),
   bugdisp(['call rule', N]),
+  /* trace, */
   prove(N, IfList, LhsCF),
   bugdisp(['exit rule', N]),
   adjust(NumCF, LhsCF, NewCF),
