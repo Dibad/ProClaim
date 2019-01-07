@@ -185,14 +185,11 @@ print_goals(A) :-
 % ============  Find Goal  ================
 
 % Fix for negative values to work
-findgoal(not av(A, 'yes'), CF) :-
-  findgoal(av(A, 'yes'), CF),
-  !.
-
 findgoal(not Goal, NCF) :-
   findgoal(Goal, CF),
   NCF is 100 - CF,
   !.
+
 
 % Value already known
 findgoal(av(A, V), CF) :-
@@ -219,7 +216,6 @@ fg(Goal, CurCF) :-
   rule(N, lhs(IfList), rhs(Goal, CF)),
   atom_number(CF, NumCF),
   bugdisp(['call rule', N]),
-  /* trace, */
   prove(N, IfList, LhsCF),
   bugdisp(['exit rule', N]),
   adjust(NumCF, LhsCF, NewCF),
@@ -308,22 +304,10 @@ prove(N, _, _) :-
 
 prov([], LhsCF, LhsCF).
 prov([H | T], CurCF, LhsCF) :-
-  test_if(H, CurCF, NewCF),
+  findgoal(H, CF),
+  NewCF is min(CurCF, CF),
+  NewCF >= 20,
   prov(T, NewCF, LhsCF).
-
-
-test_if(av(A, V), CurCF, NewCF) :-
-  findgoal(av(A, V), CF),
-  min_cf(CurCF, CF, NewCF).
-
-test_if(not av(A, V), CurCF, NewCF) :-
-  findgoal(not av(A, V), CF),
-  ComplCF is 100 - CF,
-  min_cf(CurCF, ComplCF, NewCF).
-
-min_cf(A, B, Out) :-
-  Out is min(A, B),
-  Out >= 20.
 
 
 
@@ -385,5 +369,6 @@ then(THEN, '100') --> statement(THEN).
 
 statement(not av(A, 'yes')) --> ['not', A].
 statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
+statement(not av(A, V)) --> ['not'], [A], (['is'] ; ['are']), [V].
 statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(av(A, 'yes')) --> [A].
