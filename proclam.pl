@@ -292,11 +292,11 @@ check_answer(V, CF, Menu) :-
 % A. Save negative statements as positive ones with complementary CF
 save_fact(av(A, 'no'), CF) :-
   NCF is 100 - CF,
-  asserta(fact(av(A, 'yes'), NCF, _)).
+  asserta(fact(av(A, 'yes'), NCF, [])).
 
 % B. Save positive statements as they are
 save_fact(av(A, V), CF) :-
-  asserta(fact(av(A, V), CF, _)).
+  asserta(fact(av(A, V), CF, [])).
 
 
 
@@ -359,13 +359,13 @@ how :-
 how(Goal) :-
   fact(Goal, CF, Rules),
   CF >= 20,
+  Rules \== [],
   av_list(Goal, GoalList),
   nl,
   write_list(GoalList),
-  write_list_ln([' was derived from rules: ' | Rules]),
+  write_list_ln([' was derived from rules:' | Rules]),
   nl,
-  write_rules(Rules),
-  fail.
+  write_rules(Rules).
 
 how(_).
 
@@ -376,25 +376,37 @@ av_list(av(A, V), [A, 'is', V]).
 
 
 write_rules([]).
-write_rules([R | T]) :-
-  write_rule(R),
+write_rules([N | T]) :-
+  write_rule(N),
+  how_lhs(N),
   write_rules(T).
 
 write_rule(N) :-
   rule(N, lhs(IfList), rhs(Goal, CF)),
-  write_list_ln(['Rule ', N]),
-  write_list_ln(['If']),
+  tab(5), write_list_ln(['Rule ', N]),
+  tab(5), write_list_ln(['If']),
   write_ifs(IfList),
-  write_list_ln(['Then']),
+  tab(5), write_list_ln(['Then']),
   av_list(Goal, GoalList),
-  write_list(GoalList),
+  tab(5), write_list(GoalList),
   write_list_ln([' cf ', CF]).
+
 
 write_ifs([]).
 write_ifs([H | T]) :-
   av_list(H, HList),
-  tab(5), write_list_ln(HList),
+  tab(10), write_list_ln(HList),
   write_ifs(T).
+
+
+how_lhs(N) :-
+  rule(N, lhs(IfList), _),
+  how_ifs(IfList).
+
+how_ifs([]).
+how_ifs([Goal | X]) :-
+  how(Goal),
+  how_ifs(X).
 
 
 
