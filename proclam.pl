@@ -351,49 +351,52 @@ combine(CF1, CF2, CF) :-
 % ============  Update  ===================
 
 how :-
-  writeln('Goal? '), read_sentence(X),
-  /* trace, */
-  pretty(Goal, X),
+  writeln('Goal? '),
+  read_sentence(InputList),
+  av_list(Goal, InputList),
   how(Goal).
 
 how(Goal) :-
   fact(Goal, CF, Rules),
   CF >= 20,
-  pretty(Goal, PG),
-  atomic_list_concat(PG, ' ', SPG),
-  write_list_ln([SPG, 'was', 'derived', 'from', 'rules:' | Rules]),
-  list_rules(Rules),
+  av_list(Goal, GoalList),
+  nl,
+  write_list(GoalList),
+  write_list_ln([' was derived from rules: ' | Rules]),
+  nl,
+  write_rules(Rules),
   fail.
 
 how(_).
 
+av_list(not av(A, 'yes'), [not, A]) :- !.
+av_list(not av(A, V), ['not', A, 'is', V]).
+av_list(av(A, 'yes'), [A]) :- !.
+av_list(av(A, V), [A, 'is', V]).
 
-pretty(av(A, 'yes'), [A]) :- !.
-pretty(not av(A, 'yes'), [not, A]) :- !.
-pretty(av(A, 'no'), ['not', A]) :- !.
-pretty(not av(A, V), ['not', A, 'is', V]).
-pretty(av(A, V), [A, 'is', V]).
 
-list_rules([]).
-list_rules([R | X]) :-
-  list_rule(R),
-  list_rules(X).
+write_rules([]).
+write_rules([R | T]) :-
+  write_rule(R),
+  write_rules(T).
 
-list_rule(N) :-
+write_rule(N) :-
   rule(N, lhs(IfList), rhs(Goal, CF)),
-  write_list_ln(['rule ', N]),
+  write_list_ln(['Rule ', N]),
   write_list_ln(['If']),
   write_ifs(IfList),
   write_list_ln(['Then']),
-  pretty(Goal, PG),
-  atomic_list_concat(PG, ' ', SPG),
-  write_list_ln([' ', SPG, CF]).
+  av_list(Goal, GoalList),
+  write_list(GoalList),
+  write_list_ln([' cf ', CF]).
 
 write_ifs([]).
 write_ifs([H | T]) :-
-  pretty(H, HP),
-  tab(5), write_list_ln(HP),
+  av_list(H, HList),
+  tab(5), write_list_ln(HList),
   write_ifs(T).
+
+
 
 % ============  DCG  ======================
 
