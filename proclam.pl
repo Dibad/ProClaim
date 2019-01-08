@@ -156,7 +156,8 @@ solve :-
   clear_facts,
   current_predicate(top_goal/1),
   top_goal(A),
-  findgoal(av(A, _), _),
+  trace,
+  findgoal(av(A, _), _, [goal(A)]),
   print_goals(A).
 
 % B. Load knowledge database first (to define top_goal predicate)
@@ -194,38 +195,37 @@ print_solution(_, _).
 % ============  Find Goal  ================
 
 % Fix for negative values to work
-findgoal(not Goal, NCF) :-
-  findgoal(Goal, CF),
+findgoal(not Goal, NCF, Hist) :-
+  findgoal(Goal, CF, Hist),
   NCF is 100 - CF,
   !.
 
-
 % Value already known
-findgoal(av(A, V), CF) :-
+findgoal(av(A, V), CF, _) :-
   fact(av(A, V), CF, _),
   !.
 
-
 % Ask user
-findgoal(av(A, V), CF) :-
+findgoal(av(A, V), CF, Hist) :-
   not fact(av(A, _), _, _),
   askable(A, Menu, Prompt),
-  query_user(A, Menu, Prompt),
+  query_user(A, Menu, Prompt, Hist),
   !,
-  findgoal(av(A, V), CF).
+  findgoal(av(A, V), CF, Hist).
 
 
 % Search if Goal appears as a rhs of any rule
-findgoal(Goal, CF) :-
-  fg(Goal, CF),
+findgoal(Goal, CF, Hist) :-
+  fg(Goal, CF, Hist),
   !.
 
+
 % Search rules with rhs of Goal. Prove its lhs, and update new CF of facts
-fg(Goal, CurCF) :-
+fg(Goal, CurCF, Hist) :-
   rule(N, lhs(IfList), rhs(Goal, CF)),
   atom_number(CF, NumCF),
   bugdisp(['call rule', N]),
-  prove(N, IfList, LhsCF),
+  prove(N, IfList, LhsCF, Hist),
   bugdisp(['exit rule', N]),
   adjust(NumCF, LhsCF, NewCF),
   update(Goal, NewCF, CurCF, N),
@@ -239,10 +239,10 @@ fg(Goal, CF) :-
 
 % ============  Bugdisp  ==================
 
-bugdisp(L) :-
+bugdisp(Rule) :-
   ruletrace,
   nl,
-  tab(1), write_list_ln(L),
+  tab(1), write_list_ln(Rule),
   !.
 
 bugdisp(_).
@@ -252,35 +252,54 @@ bugdisp(_).
 % ============  Query user  ===============
 
 % Show a menu to ask the value of the attribute to the user
-query_user(A, Menu, Prompt) :-
+query_user(A, Menu, Prompt, Hist) :-
   repeat,
     nl,
     write('-> Question about: '), writeln(A),
     write('Options: '), writeln(Menu),
     write_list_ln(Prompt),
-    get_user_answer(V, CF, Menu, Valid),
+    get_user_answer(V, CF, Menu, Valid, Hist),
     Valid = true,
   !,
   save_fact(av(A, V), CF).
 
 
 % A. Get user input as a list of words. Parse it and check if its correct
-get_user_answer(V, CF, Menu, _) :-
+get_user_answer(V, CF, Menu, _, Hist) :-
   read_sentence(Answer),
-  parse_answer(Answer, V, CF),
+  parse_answer(Answer, V, CF, Hist),
   check_answer(V, CF, Menu).
 
 % B. If its not correct, repeat loop by assigning false to Valid
-get_user_answer(_, _, _, Valid) :-
+get_user_answer(_, _, _, Valid, _) :-
   writeln('No es una respuesta válida!.'),
   Valid = false.
 
 
+parse_answer(['why'], _, _, Hist) :-
+  write_hist(Hist),
+  fail,
+  !.
+
 % Input can be: value. (implicit cf of 100), or value cf.
-parse_answer([V], V, 100) :- !.
-parse_answer([V, CF], V, NumCF) :-
+parse_answer([V], V, 100, _) :- !.
+parse_answer([V, CF], V, NumCF, _) :-
   atom_number(CF, NumCF),
   !.
+
+
+write_hist([]) :-
+  nl.
+
+write_hist([goal(X) | T]) :-
+  write_list([goal, X]),
+  !,
+  write_hist(T).
+
+write_hist([N | T]) :-
+  write_rule(N),
+  !,
+  write_hist(T).
 
 
 % Chech that answer is a option of the menu, and that CF is between the range
@@ -302,21 +321,21 @@ save_fact(av(A, V), CF) :-
 
 % ============  Prove     =================
 
-prove(_, IfList, LhsCF) :-
-  prov(IfList, 100, LhsCF),
+prove(N, IfList, LhsCF, Hist) :-
+  prov(IfList, 100, LhsCF, [N | Hist]),
   !.
 
-prove(N, _, _) :-
+prove(N, _, _, _) :-
   bugdisp(['fail rule', N]),
   fail.
 
 
-prov([], LhsCF, LhsCF).
-prov([H | T], CurCF, LhsCF) :-
-  findgoal(H, CF),
+prov([], LhsCF, LhsCF, _).
+prov([H | T], CurCF, LhsCF, Hist) :-
+  findgoal(H, CF, Hist),
   NewCF is min(CurCF, CF),
   NewCF >= 20,
-  prov(T, NewCF, LhsCF).
+  prov(T, NewCF, LhsCF, Hist).
 
 
 

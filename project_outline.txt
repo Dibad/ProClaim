@@ -25,3 +25,4 @@ más facil y esté más contenido (solo entre 0 y 100)
 9º: Aádir más ajustes para controlar los rangos de las variables
 10º: Guardar los facts de forma homogénea (Convertir los 'no' en 'yes' con CF
 complementario)
+11º: Añadir sistema de hows. Procesar correctamente el arbol de decisiones.
