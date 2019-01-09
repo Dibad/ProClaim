@@ -232,7 +232,7 @@ fg(Goal, CurCF, Hist) :-
   CurCF = 100,
   !.
 
-fg(Goal, CF) :-
+fg(Goal, CF, Hist) :-
   fact(Goal, CF, _).
 
 
