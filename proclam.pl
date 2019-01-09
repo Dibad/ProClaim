@@ -15,8 +15,6 @@
 
 :- op(900, fy, not). % Define not operator instead of using \+
 
-ruletrace.
-
 
 % ============  Main Loop  ================
 start :-
@@ -156,8 +154,7 @@ solve :-
   clear_facts,
   current_predicate(top_goal/1),
   top_goal(A),
-  trace,
-  findgoal(av(A, _), _, [goal(A)]),
+  findgoal(av(A, _), _, _),
   print_goals(A).
 
 % B. Load knowledge database first (to define top_goal predicate)
@@ -265,31 +262,33 @@ query_user(A, Menu, Prompt, Hist) :-
 
 
 % A. Get user input as a list of words. Parse it and check if its correct
-get_user_answer(V, CF, Menu, _, Hist) :-
+get_user_answer(V, CF, Menu, Valid, Hist) :-
   read_sentence(Answer),
-  parse_answer(Answer, V, CF, Hist),
-  check_answer(V, CF, Menu).
+  parse_answer(Answer, V, CF),
+  check_answer(V, CF, Menu, Valid, Hist).
 
-% B. If its not correct, repeat loop by assigning false to Valid
-get_user_answer(_, _, _, Valid, _) :-
+parse_answer(['why'], 'why', _) :- !.
+parse_answer([V], V, 100) :- !.
+parse_answer([V, CF], V, NumCF) :- atom_number(CF, NumCF), !.
+
+
+check_answer('why', _, _, Valid, Hist) :-
+  write_hist(Hist),
+  Valid = false,
+  !.
+
+check_answer(V, CF, Menu, _, _) :-
+  member(V, Menu),
+  between(0, 100, CF),
+  !.
+
+check_answer(_, _, _, Valid, _) :-
   writeln('No es una respuesta válida!.'),
   Valid = false.
 
 
-parse_answer(['why'], _, _, Hist) :-
-  write_hist(Hist),
-  fail,
-  !.
 
-% Input can be: value. (implicit cf of 100), or value cf.
-parse_answer([V], V, 100, _) :- !.
-parse_answer([V, CF], V, NumCF, _) :-
-  atom_number(CF, NumCF),
-  !.
-
-
-write_hist([]) :-
-  nl.
+write_hist([]).
 
 write_hist([goal(X) | T]) :-
   write_list([goal, X]),
@@ -302,10 +301,6 @@ write_hist([N | T]) :-
   write_hist(T).
 
 
-% Chech that answer is a option of the menu, and that CF is between the range
-check_answer(V, CF, Menu) :-
-  member(V, Menu),
-  between(0, 100, CF).
 
 
 % A. Save negative statements as positive ones with complementary CF
@@ -408,7 +403,8 @@ write_rule(N) :-
   tab(5), write_list_ln(['Then']),
   av_list(Goal, GoalList),
   tab(5), write_list(GoalList),
-  write_list_ln([' cf ', CF]).
+  write_list_ln([' cf ', CF]),
+  nl.
 
 
 write_ifs([]).
