@@ -229,7 +229,7 @@ fg(Goal, CurCF, Hist) :-
   CurCF = 100,
   !.
 
-fg(Goal, CF, Hist) :-
+fg(Goal, CF, _) :-
   fact(Goal, CF, _).
 
 
@@ -253,23 +253,50 @@ query_user(A, Menu, Prompt, Hist) :-
   repeat,
     nl,
     write('-> Question about: '), writeln(A),
-    write('Options: '), writeln(Menu),
+    writeln('Options: '), tab(3), write_menu(Menu),
     write_list_ln(Prompt),
     get_user_answer(V, CF, Menu, Valid, Hist),
     Valid = true,
   !,
   save_fact(av(A, V), CF).
 
+write_menu(Menu) :-
+  write_menu(Menu, 1).
+
+write_menu([], _) :-
+  writeln('[why]'), nl.
+
+write_menu([H | T], I) :-
+  write('['), write(I), write('. '), write(H), write(']'), tab(2),
+  NextI is I + 1,
+  write_menu(T, NextI).
+
 
 % A. Get user input as a list of words. Parse it and check if its correct
 get_user_answer(V, CF, Menu, Valid, Hist) :-
   read_sentence(Answer),
-  parse_answer(Answer, V, CF),
+  parse_answer(Answer, V, CF, Menu),
   check_answer(V, CF, Menu, Valid, Hist).
 
-parse_answer(['why'], 'why', _) :- !.
-parse_answer([V], V, 100) :- !.
-parse_answer([V, CF], V, NumCF) :- atom_number(CF, NumCF), !.
+
+% Interprete why question
+parse_answer(['why'], 'why', _, _) :- !.
+
+% Transform from number to its element in the menu list
+parse_answer([V], MenuV, 100, Menu) :-
+  parse_answer([V, 100], MenuV, 100, Menu),
+  !.
+
+parse_answer([V, CF], MenuV, CF, Menu) :-
+  atom_number(V, NumV),
+  Index is NumV - 1,
+  nth0(Index, Menu, MenuV),
+  !.
+
+% Simply get the answer string
+parse_answer([V], V, 100, _) :- !.
+parse_answer([V, CF], V, NumCF, _) :- atom_number(CF, NumCF), !.
+
 
 
 check_answer('why', _, _, Valid, Hist) :-
