@@ -61,13 +61,11 @@ clear_facts :-
 
 trace(['on']) :-
   asserta(ruletrace),
-  writeln('Trace rule is ON.'),
-  !.
+  writeln('Trace rule is ON.').
 
 trace(['off']) :-
   retract(ruletrace),
-  writeln('Trace rule is OFF.'),
-  !.
+  writeln('Trace rule is OFF.').
 
 trace([X]) :-
   write(X), writeln(' is not a valid argument! Must be on/off').
@@ -160,8 +158,7 @@ solve :-
 % B. Load knowledge database first (to define top_goal predicate)
 solve :-
   not current_predicate(top_goal/1),
-  writeln('First, load a knowledge database using load.'),
-  !.
+  writeln('First, load a knowledge database using load.').
 
 % C. No result found
 solve :-
@@ -176,17 +173,14 @@ solve :-
 print_goals(A) :-
   nl,
   writeln('Sucess! Found: '),
-  forall(fact(av(A, V), CF, _),
-    (write('\t- '), write(A), write(': '), write(V), write(' cf '), writeln(CF),
-    print_solution(A, V))).
+  forall(fact(av(A, V), CF, _), print_solution(A, V, CF)).
 
 
-print_solution(A, V) :-
+print_solution(A, V, CF) :-
+  write('\t- '), write(A), write(': '), write(V), write(' cf '), writeln(CF),
   output(A, V, SolutionList),
-  write('\t- Solution: '), write_list_ln(SolutionList), nl,
-  !.
+  write('\t- Solution: '), write_list_ln(SolutionList), nl.
 
-print_solution(_, _).
 
 
 % ============  Find Goal  ================
@@ -239,8 +233,7 @@ fg(Goal, CF, _) :-
 bugdisp(Rule) :-
   ruletrace,
   nl,
-  tab(1), write_list_ln(Rule),
-  !.
+  tab(1), write_list_ln(Rule).
 
 bugdisp(_).
 
@@ -263,9 +256,7 @@ query_user(A, Menu, Prompt, Hist) :-
 write_menu(Menu) :-
   write_menu(Menu, 1).
 
-write_menu([], _) :-
-  writeln('[why]'), nl.
-
+write_menu([], _) :- writeln('[why]'), nl.
 write_menu([H | T], I) :-
   write('['), write(I), write('. '), write(H), write(']'), tab(2),
   NextI is I + 1,
@@ -298,7 +289,6 @@ parse_answer([V], V, 100, _) :- !.
 parse_answer([V, CF], V, NumCF, _) :- atom_number(CF, NumCF), !.
 
 
-
 check_answer('why', _, _, Valid, Hist) :-
   write_hist(Hist),
   Valid = false,
@@ -316,7 +306,6 @@ check_answer(_, _, _, Valid, _) :-
 
 
 write_hist([]).
-
 write_hist([goal(X) | T]) :-
   write_list([goal, X]),
   !,
@@ -389,7 +378,7 @@ combine(CF1, CF2, CF) :-
 
 
 
-% ============  Update  ===================
+% ============  How  ======================
 
 how :-
   writeln('Goal? '),
@@ -409,6 +398,7 @@ how(Goal) :-
   write_rules(Rules).
 
 how(_).
+
 
 av_list(not av(A, 'yes'), [not, A]) :- !.
 av_list(not av(A, V), ['not', A, 'is', V]).
@@ -454,7 +444,7 @@ how_ifs([Goal | X]) :-
 
 % ============  DCG  ======================
 
-% -- Statements that the DCG can generate
+% -- Predicates that the DCG can generate
 translate(top_goal(X)) --> ['goal', X].
 translate(top_goal(X)) --> ['goal', 'is', X].
 translate(askable(A, M, P)) --> ['ask', A], menu(M), prompt(P).
