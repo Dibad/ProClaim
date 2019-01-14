@@ -153,7 +153,8 @@ solve :-
   current_predicate(top_goal/1),
   top_goal(A),
   findgoal(av(A, _), _, _),
-  print_goals(A).
+  print_goals(A),
+  !.
 
 % B. Load knowledge database first (to define top_goal predicate)
 solve :-
@@ -180,6 +181,8 @@ print_solution(A, V, CF) :-
   write('\t- '), write(A), write(': '), write(V), write(' cf '), writeln(CF),
   output(A, V, SolutionList),
   write('\t- Solution: '), write_list_ln(SolutionList), nl.
+
+print_solution(_, _, _).
 
 
 
