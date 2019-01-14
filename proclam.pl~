@@ -278,12 +278,11 @@ parse_answer(['why'], 'why', _, _) :- !.
 
 % Transform from number to its element in the menu list
 parse_answer([V], MenuV, 100, Menu) :-
-  parse_answer([V, '100'], MenuV, 100, Menu),
+  parse_answer([V, 100], MenuV, 100, Menu),
   !.
 
-parse_answer([V, CF], MenuV, NumCF, Menu) :-
+parse_answer([V, CF], MenuV, CF, Menu) :-
   atom_number(V, NumV),
-  atom_number(CF, NumCF),
   Index is NumV - 1,
   nth0(Index, Menu, MenuV),
   !.
