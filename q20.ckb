@@ -2,28 +2,64 @@ objetivo respuesta.
 
 regla 1
   si    es un animal y
-        tiene cuatro patas y
-        sonido es ladra
-  entonces respuesta es un perro.
+        grupo es vertebrados y
+        tiene plumas
+  entonces es un ave.
 
 regla 2
-  si    es un animal y
-        tiene cuatro patas y
-        sonido es maulla
-  entonces respuesta es un gato.
+  si    es un ave y
+        tamaño es pequeño y
+        no puede volar
+  entonces familia es gallinaceas.
+
+regla 3
+  si    es un ave y
+        tamano es grande y
+        no puede volar
+  entonces familia es corredoras.
+
+regla 4
+  si    es un ave y
+        tiene garras
+  entonces familia es rapaces.
+
+
+regla 5
+  si    familia es gallinaceas y
+        canta
+  entonces la respuesta es gallo.
+
+regla 6
+  si    familia es gallinaceas y
+        no canta
+  entonces la respuesta es gallina.
+
+
 
 preguntar animal
 menu yes no
-pregunta '¿Es un animal?'.
+mensaje '¿Es un animal?'.
 
-preguntar sonido
-menu ladra maulla
-pregunta '¿Que sonido hace?'.
-
-preguntar patas
-menu no_tiene dos cuatro
-pregunta '¿Cuántas patas tiene?'.
+preguntar grupo
+menu vertebrados invertebrados
+mensaje '¿A qué grupo pertenece?'.
 
 preguntar tamaño
-menu pequeño grande
-pregunta '¿De que tamaño es?'.
+menu pequeño mediano grande
+mensaje '¿De qué tamano es?'.
+
+preguntar plumas
+menu yes no
+mensaje '¿Tiene plumas?'.
+
+preguntar volar
+menu yes no
+mensaje '¿Puede volar?'.
+
+preguntar canta
+menu yes no
+mensaje '¿Puede cantar?'.
+
+preguntar garras
+menu yes no
+mensaje '¿Tiene garras?'.

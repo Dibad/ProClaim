@@ -152,6 +152,7 @@ solve :-
   clear_facts,
   current_predicate(top_goal/1),
   top_goal(A),
+  trace,
   findgoal(av(A, _), _, _),
   print_goals(A),
   !.
@@ -302,6 +303,11 @@ check_answer('why', _, _, Valid, Hist) :-
 check_answer(V, CF, Menu, _, _) :-
   member(V, Menu),
   between(0, 100, CF),
+  !.
+
+check_answer('why', _, _, Valid, Hist) :-
+  write_hist(Hist),
+  Valid = false,
   !.
 
 check_answer(_, _, _, Valid, _) :-
@@ -460,7 +466,7 @@ translate(output(A, V, PL)) -->  (['output'] ; ['solucion']), statement(av(A, V)
 
 % Menu structure
 menu(M) --> ['menu'], itemlist(M).
-prompt(P) --> (['prompt'] ; ['pregunta']), itemlist(P).
+prompt(P) --> (['prompt'] ; ['mensaje']), itemlist(P).
 
 itemlist([Item]) --> [Item].
 itemlist([Item | T]) --> [Item], itemlist(T).
@@ -471,7 +477,7 @@ id(N) --> (['rule'] ; ['regla']), [N].
 
 if(IF) --> (['if'] ; ['si']), iflist(IF).
 
-iflist([IF]) --> statement(IF), (['then'] ; ['entonces']).
+iflist([IF]) --> statement(IF), (['then'] ; ['entonces']), (['the'] ; ['el'] ; ['la'] ; []).
 iflist([H | T]) --> statement(H), (['and'] ; ['y'] ; [', ']), iflist(T).
 
 then(THEN, CF) --> statement(THEN), [cf], [CF].
@@ -484,15 +490,32 @@ statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(av(A, 'yes')) --> [A].
 
 % Statements in Spanish
-statement(not av(A, 'yes')) --> ['no', 'es'], [A].
-statement(not av(A, 'yes')) --> ['no', 'es'], (['un'] ; ['una']), [A].
-statement(not av(A, 'yes')) --> ['no', 'puede'], [A].
-statement(not av(A, V)) --> ['no', 'tiene'], [V], [A].
-statement(not av(A, V)) --> [A], ['no', 'es'], [V].
-statement(not av(A, V)) --> [A], ['no', 'es'], (['un'] ; ['una']), [V].
+
+% '[no] A'
+statement(av(A, 'yes')) --> [A].
+statement(av(A, 'yes')) --> ['no', A].
+
+% '[no] es A'
 statement(av(A, 'yes')) --> ['es'], [A].
+statement(not av(A, 'yes')) --> ['no', 'es'], [A].
+
+% [no] es (un | una) A
 statement(av(A, 'yes')) --> ['es'], (['un'] ; ['una']), [A].
-statement(av(A, 'yes')) --> ['puede'], [A].
-statement(av(A, V)) --> ['tiene'], [V], [A].
+statement(not av(A, 'yes')) --> ['no', 'es'], (['un'] ; ['una']), [A].
+
+% [no] (puede | tiene) A
+statement(av(A, 'yes')) --> (['puede'] ; ['tiene']), [A].
+statement(not av(A, 'yes')) --> ['no'], (['puede'] ; ['tiene']), [A].
+
+% A [no] es V
 statement(av(A, V)) --> [A], ['es'], [V].
+statement(not av(A, V)) --> [A], ['no', 'es'], [V].
+
+% A [no] es (un | una) V
 statement(av(A, V)) --> [A], ['es'], (['un'] ; ['una']), [V].
+statement(not av(A, V)) --> [A], ['no', 'es'], (['un'] ; ['una']), [V].
+
+% [no] tiene V A
+statement(av(A, V)) --> ['tiene'], [V], [A].
+statement(not av(A, V)) --> ['no', 'tiene'], [V], [A].
+
