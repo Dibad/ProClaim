@@ -3,40 +3,22 @@ objetivo respuesta.
 regla 1
   si    es un animal y
         tiene cuatro patas y
-        ladra
+        sonido es ladra
   entonces respuesta es un perro.
 
 regla 2
   si    es un animal y
         tiene cuatro patas y
-        maulla
+        sonido es maulla
   entonces respuesta es un gato.
-
-regla 3
-  si    es un animal y
-        puede nadar
-  entonces es un animal_acuatico.
-
-regla 4
-  si    es un animal_acuatico y
-        tamaño es pequeño
-  entonces respuesta es un pez.
 
 preguntar animal
 menu yes no
 pregunta '¿Es un animal?'.
 
-preguntar nadar
-menu yes no
-pregunta '¿Puede nadar?'.
-
-preguntar maulla
-menu yes no
-pregunta '¿Maulla?'.
-
-preguntar ladra
-menu yes no
-pregunta '¿Ladra?'.
+preguntar sonido
+menu ladra maulla
+pregunta '¿Que sonido hace?'.
 
 preguntar patas
 menu no_tiene dos cuatro

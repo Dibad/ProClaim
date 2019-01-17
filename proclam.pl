@@ -251,10 +251,10 @@ query_user(A, Menu, Prompt, Hist) :-
     write('-> Question about: '), writeln(A),
     writeln('Options: '), tab(3), write_menu(Menu),
     write_list_ln(Prompt),
-    get_user_answer(V, CF, Menu, Valid, Hist),
+    read_sentence(Answer),
+    get_facts_from_answer(Answer, A, Menu, Valid, Hist),
     Valid = true,
-  !,
-  save_fact(av(A, V), CF).
+  !.
 
 write_menu(Menu) :-
   write_menu(Menu, 1).
@@ -267,31 +267,32 @@ write_menu([H | T], I) :-
 
 
 % A. Get user input as a list of words. Parse it and check if its correct
-get_user_answer(V, CF, Menu, Valid, Hist) :-
-  read_sentence(Answer),
-  parse_answer(Answer, V, CF, Menu),
-  check_answer(V, CF, Menu, Valid, Hist).
-
-
-% Interprete why question
-parse_answer(['why'], 'why', _, _) :- !.
-
-% Transform from number to its element in the menu list
-parse_answer([V], MenuV, 100, Menu) :-
-  parse_answer([V, '100'], MenuV, 100, Menu),
+get_facts_from_answer([V, CF | T], A, Menu, Valid, Hist) :-
+  parse_answer(V, CF, OutV, NumCF, Menu),
+  check_answer(OutV, NumCF, Menu, Valid, Hist),
+  get_facts_from_answer(T, A, Menu, Valid, Hist),
+  save_fact(av(A, OutV), NumCF),
   !.
 
-parse_answer([V, CF], MenuV, NumCF, Menu) :-
+get_facts_from_answer([V | T], A, Menu, Valid, Hist) :-
+  get_facts_from_answer([V, '100' | T], A, Menu, Valid, Hist),
+  !.
+
+get_facts_from_answer([], _, _, _, _).
+
+
+% Menu index answer
+parse_answer(V, CF, MenuV, NumCF, Menu) :-
   atom_number(V, NumV),
   atom_number(CF, NumCF),
   Index is NumV - 1,
   nth0(Index, Menu, MenuV),
   !.
 
-% Simply get the answer string
-parse_answer([V], V, 100, _) :- !.
-parse_answer([V, CF], V, NumCF, _) :- atom_number(CF, NumCF), !.
-
+% Value - CF answer
+parse_answer(V, CF, V, NumCF, Menu) :-
+  atom_number(CF, NumCF),
+  !.
 
 check_answer('why', _, _, Valid, Hist) :-
   write_hist(Hist),
@@ -306,6 +307,7 @@ check_answer(V, CF, Menu, _, _) :-
 check_answer(_, _, _, Valid, _) :-
   writeln('No es una respuesta válida!.'),
   Valid = false.
+
 
 
 
