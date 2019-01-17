@@ -289,10 +289,3 @@ prompt	'What type of voice?'.
 ask	wings
 menu	(long_narrow broad long_pointed other)
 prompt	'What type of wings does it have?'.
-
-multivalued voice.
-
-multivalued color.
-
-multivalued eats.
-

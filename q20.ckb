@@ -37,29 +37,29 @@ regla 6
 
 
 preguntar animal
-menu yes no
+menu (yes no)
 mensaje '¿Es un animal?'.
 
 preguntar grupo
-menu vertebrados invertebrados
+menu (vertebrados invertebrados)
 mensaje '¿A qué grupo pertenece?'.
 
 preguntar tamaño
-menu pequeño mediano grande
+menu (pequeño mediano grande)
 mensaje '¿De qué tamano es?'.
 
 preguntar plumas
-menu yes no
+menu (yes no)
 mensaje '¿Tiene plumas?'.
 
 preguntar volar
-menu yes no
+menu (yes no)
 mensaje '¿Puede volar?'.
 
 preguntar canta
-menu yes no
+menu (yes no)
 mensaje '¿Puede cantar?'.
 
 preguntar garras
-menu yes no
+menu (yes no)
 mensaje '¿Tiene garras?'.
