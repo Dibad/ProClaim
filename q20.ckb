@@ -10,18 +10,18 @@ regla 2
   si    es un ave y
         tamaño es pequeño y
         no puede volar
-  entonces familia es gallinaceas.
+  entonces la familia es gallinaceas.
 
 regla 3
   si    es un ave y
-        tamano es grande y
+        tamaño es grande y
         no puede volar
-  entonces familia es corredoras.
+  entonces la familia es corredoras.
 
 regla 4
   si    es un ave y
         tiene garras
-  entonces familia es rapaces.
+  entonces la familia es rapaces.
 
 
 regla 5

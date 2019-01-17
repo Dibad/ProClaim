@@ -1,10 +1,10 @@
-%  +----------------------------------+
-%  |                                  |
-%  |            ProCla(i)m            |
-%  |                                  |
-%  +----------------------------------+
+%            +----------------------------------+
+%            |                                  |
+%            |            ProCla(i)m            |
+%            |                                  |
+%            +----------------------------------+
 % Prolog Shell for Expert Sytems based on Clam, from the book "Building Expert
-% Systems with Prolog", with extended features.
+% Systems with Prolog", with many extended features.
 
 
 % ============  Prolog Defs  ==============
@@ -515,29 +515,25 @@ statement(not av(A, V)) --> ['not'], [A], (['is'] ; ['are']), [V].
 
 % Statements in Spanish
 
-% '[no] A'
-statement(av(A, 'yes')) --> [A].
-statement(av(A, 'yes')) --> ['no', A].
+% [no] es (un | una | ) A
+statement(av(A, 'yes')) --> ['es'], (['un'] ; ['una'] ; []), [A],
+                            { A \== 'un', A \== 'una' }.
 
-% '[no] es A'
-statement(av(A, 'yes')) --> ['es'], [A].
-statement(not av(A, 'yes')) --> ['no', 'es'], [A].
-
-% [no] es (un | una) A
-statement(av(A, 'yes')) --> ['es'], (['un'] ; ['una']), [A].
-statement(not av(A, 'yes')) --> ['no', 'es'], (['un'] ; ['una']), [A].
+statement(not av(A, 'yes')) --> ['no', 'es'], (['un'] ; ['una'] ; []), [A],
+                            { A \== 'un', A \== 'una' }.
 
 % [no] (puede | tiene) A
 statement(av(A, 'yes')) --> (['puede'] ; ['tiene']), [A].
 statement(not av(A, 'yes')) --> ['no'], (['puede'] ; ['tiene']), [A].
 
-% A [no] es V
-statement(av(A, V)) --> [A], ['es'], [V].
-statement(not av(A, V)) --> [A], ['no', 'es'], [V].
+% [no] A
+statement(av(A, 'yes')) --> [A].
+statement(not av(A, 'yes')) --> ['no', A].
 
-% A [no] es (un | una) V
-statement(av(A, V)) --> [A], ['es'], (['un'] ; ['una']), [V].
-statement(not av(A, V)) --> [A], ['no', 'es'], (['un'] ; ['una']), [V].
+
+% A [no] es (un | una | ) V
+statement(av(A, V)) --> [A], ['es'], (['un'] ; ['una'] ; []), [V].
+statement(not av(A, V)) --> [A], ['no', 'es'], (['un'] ; ['una'] ; []), [V].
 
 % [no] tiene V A
 statement(av(A, V)) --> ['tiene'], [V], [A].
