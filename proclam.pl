@@ -503,14 +503,15 @@ itemlist([Item | T]) --> [Item], itemlist(T).
 
 
 % Statements in English
-statement(av(A, 'yes')) --> [A].
-statement(not av(A, 'yes')) --> ['not', A].
 
 statement(av(A, 'yes')) --> (['a'] ; ['an']), [A].
 statement(not av(A, 'yes')) --> ['not'], (['a'] ; ['an']), [A].
 
 statement(av(A, V)) --> [A], (['is'] ; ['are']), [V].
 statement(not av(A, V)) --> ['not'], [A], (['is'] ; ['are']), [V].
+
+statement(av(A, 'yes')) --> [A].
+statement(not av(A, 'yes')) --> ['not', A].
 
 
 % Statements in Spanish

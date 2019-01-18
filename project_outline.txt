@@ -6,23 +6,33 @@ deprecadas o que no existen no funcionan en SWI.
 Tarea: Leer todo el código, depurar los bugs y portearlo a SWI-Prolog.
 
 1º Iteración: Shell básica, implementado help, exit, y load. Carga archivos .nkb
+
 2º Iteración: Implementación de la función solve. Cambios en ask y askmenu para
 que funcionaran bien. Código más ordenado.
+
 3º Iteración (Actual): Utilizar CFG para cargar las reglas a partir de texto en
 inglés.
 Problema: En el código de referencia utilizan una función read_sentence que no
 existe en SWI-Prolog.
 Tarea: Definir algo que permita parsear un texto hasta el .
-4º: Definir el DFG para que pueda cargar las reglas correctamente. Indicar la
-sintaxis correcta y demás.
-5º: Con más conocimiento de como funcionan las shell y el DFG, comenzar a crear
-la clam.
-6º: Definir loop basico y cargar archivos. Funcion para tokenizar
-7º: Motor de inferencia, crear las reglas y buscar.
+
+4º: Motor de inferencia, crear las reglas y buscar.
 Descubrir trace ha hecho la vida mucho más facil :')
-8º: Arreglos varios. Eliminar reglas innecesarias y hacer que definir los cf sea
+
+5º: Arreglos varios. Eliminar reglas innecesarias y hacer que definir los cf sea
 más facil y esté más contenido (solo entre 0 y 100)
-9º: Aádir más ajustes para controlar los rangos de las variables
-10º: Guardar los facts de forma homogénea (Convertir los 'no' en 'yes' con CF
+Problema: Esto va a requerir rehacer todo el código del motor, pero lo merece.
+
+6º: Aádir más ajustes para controlar los rangos de las variables y que las
+respuestas sean válidas.
+
+7º: Guardar los facts de forma homogénea (Convertir los 'no' en 'yes' con CF
 complementario)
-11º: Añadir sistema de hows. Procesar correctamente el arbol de decisiones.
+
+8º: Añadir sistema de hows. Procesar correctamente el arbol de decisiones.
+
+9º: Añadir sistema de why. Modificar los predicados para guardar las secuencias.
+
+10º: Añadir sistema para permitir múltiples respuestas a una pregunta de menu
+Problema:
+
