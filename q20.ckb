@@ -23,7 +23,6 @@ regla 4
         tiene garras
   entonces la familia es rapaces.
 
-
 regla 5
   si    familia es gallinaceas y
         canta
@@ -34,6 +33,19 @@ regla 6
         no canta
   entonces la respuesta es gallina.
 
+regla 7
+  si    familia es corredoras
+  entonces la respuesta es avestruz.
+
+regla 8
+  si    familia es rapaces y
+        cuello es corto
+  entonces la respuesta es águila.
+
+regla 9
+  si    familia es rapaces y
+        cuello es largo
+  entonces la respuesta es buitre.
 
 
 preguntar animal
@@ -63,3 +75,7 @@ mensaje '¿Puede cantar?'.
 preguntar garras
 menu (yes no)
 mensaje '¿Tiene garras?'.
+
+preguntar cuello
+menu (corto largo)
+mensaje '¿Cómo es el cuello?'
